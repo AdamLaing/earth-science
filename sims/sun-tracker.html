@@ -68,7 +68,6 @@
   <button id="ansBtn" class="on">answers</button>
   <button id="fistBtn" class="on">fists</button>
   <button id="pathBtn">Sun's path</button>
-  <button id="streetBtn">Manhattan streets</button>
   <button id="dirBtn" class="dir">② How direct?</button>
   <button id="pinBtn">📌 Pin this time</button>
   <button id="fsBtn" title="full screen (F)">⛶</button>
@@ -96,11 +95,8 @@
     const H = (min / 60 - 12) * 15 * rad, phi = LAT * rad;
     const alt = Math.asin(Math.cos(phi) * Math.cos(H));
     const az = Math.atan2(-Math.sin(H), -Math.sin(phi) * Math.cos(H));
-    // Manhattan streets (Adam, 2026-11-23): the class treats downtown as south, but the grid is turned ~29° clockwise
-    // from true north, so downtown points ~209°. With the toggle on, directions are read as if downtown were south.
-    return { alt: alt / rad, az: (az / rad - (st.streets ? GRID : 0) + 720) % 360 };
+    return { alt: alt / rad, az: (az / rad + 720) % 360 };
   }
-  const GRID = 29;
   function dirLabel(az) { return ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(az / 45) % 8]; }
   function fistText(alt) {
     const k = Math.round(alt / 5) / 2, whole = Math.floor(k), half = k - whole > 0.01;
@@ -124,7 +120,6 @@
     answers: params.get("answers") !== "off",
     fists: params.get("fists") !== "off",
     path: params.get("path") === "on",
-    streets: params.get("streets") === "on",
     direct: params.get("direct") === "on",
     pin: parseHM(params.get("pin")),
     playing: false
@@ -226,14 +221,6 @@
         if (p.alt > 0) { (cur || (cur = runs[runs.length] = [])).push(P(thOf(p.az), p.alt)); } else cur = null;
       }
       runs.forEach((r) => el("path", {d: line(r), fill: "none", stroke: "#E0A800", "stroke-width": 3, "stroke-dasharray": "9 8"}, dyn));
-    }
-    $("bub1").textContent = st.streets ? "facing downtown" : "facing south";
-    $("domeCap").textContent = st.streets ? "You are facing downtown (our \u201csouth\u201d). True south is a little to your left."
-                                          : "You are facing south. North is behind you.";
-    if (st.streets) {                           // true south, ~29° east of downtown
-      const t = P(-GRID, 0), lab = P(-GRID, 0);
-      el("line", {x1: CX, y1: CY, x2: t[0], y2: t[1], stroke: "#D7263D", "stroke-width": 3.5, "stroke-dasharray": "12 7"}, dyn);
-      txt(dyn, lab[0] - 8, lab[1] - 12, "true S", {"font-size": 20, "font-weight": 700, fill: "#D7263D", "text-anchor": "middle"});
     }
     if (pinPos && pinPos.alt > 0) {
       const q = P(thOf(pinPos.az), pinPos.alt);
@@ -348,7 +335,6 @@
     $("ansBtn").classList.toggle("on", st.answers);
     $("fistBtn").classList.toggle("on", st.fists);
     $("pathBtn").classList.toggle("on", st.path);
-    $("streetBtn").classList.toggle("on", st.streets);
     $("pinBtn").classList.toggle("on", st.pin != null);
     $("pinBtn").textContent = st.pin == null ? "📌 Pin this time" : "📌 Unpin " + clockText(st.pin);
   }
@@ -363,7 +349,6 @@
   $("ansBtn").addEventListener("click", () => { st.answers = !st.answers; layout(); render(); });
   $("fistBtn").addEventListener("click", () => { st.fists = !st.fists; layout(); render(); });
   $("pathBtn").addEventListener("click", () => { st.path = !st.path; layout(); render(); });
-  $("streetBtn").addEventListener("click", () => { st.streets = !st.streets; layout(); render(); });
   $("dirBtn").addEventListener("click", () => { st.direct = !st.direct; layout(); render(); });
   $("pinBtn").addEventListener("click", () => { st.pin = st.pin == null ? Math.round(st.min) : null; layout(); render(); });
   $("fsBtn").addEventListener("click", toggleFs);

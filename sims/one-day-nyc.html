@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Day in NYC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --font: Lexend, "Segoe UI", Helvetica, Arial, sans-serif; }
+  html, body { margin: 0; height: 100%; background: #fff; font-family: var(--font); color: #222; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 4px; gap: 20px; flex-wrap: wrap; }
+  h1 { font-size: clamp(22px, 2.6vw, 40px); margin: 0; font-weight: 700; }
+  .readout { display: flex; align-items: center; gap: 14px; border: 3px solid #1F8A9E; border-radius: 12px; padding: 6px 16px; }
+  .readout .q { color: #1F8A9E; font-weight: 600; font-size: 18px; }
+  .readout .a { color: #1F8A9E; font-weight: 700; font-size: 24px; min-width: 120px; }
+  .readout .ph { color: #555; font-size: 18px; min-width: 90px; }
+  main { flex: 1 1 auto; min-height: 0; display: grid; gap: 6px 14px; padding: 0 16px; }
+  .pane { min-width: 0; min-height: 0; display: flex; }
+  .pane[hidden] { display: none; }
+  .pane svg { width: 100%; height: 100%; display: block; }
+  svg text { font-family: var(--font); }
+  .bar { display: flex; gap: 8px; align-items: center; justify-content: flex-start;
+         padding: 6px 14px 8px; border-top: 1px solid #ddd; }
+  .bar button, .bar summary { font-family: var(--font); font-size: 16px; padding: 6px 12px; border-radius: 8px;
+                border: 2px solid #444; background: #fff; cursor: pointer; color: #222; }
+  .bar button:hover, .bar summary:hover { background: #f2f2f2; }
+  .bar button.on { background: #444; color: #fff; }
+  .bar button.play { min-width: 100px; font-weight: 700; border-color: #E0A800; color: #9a7400; }
+  .bar button.play.on { background: #E0A800; color: #fff; }
+  .bar button.view { border-color: #1F8A9E; color: #1F8A9E; }
+  .bar button.view.on { background: #1F8A9E; color: #fff; }
+  .bar input[type=range] { width: min(260px, 22vw); accent-color: #E0A800; height: 26px; }
+  .menu { position: relative; }
+  .menu summary { list-style: none; user-select: none; }
+  .menu summary::-webkit-details-marker { display: none; }
+  .menu[open] summary { background: #444; color: #fff; }
+  .menu .panel { position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 10; min-width: 190px;
+                 display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #fff;
+                 border: 1px solid #bbb; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .menu .panel button { text-align: left; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>One Day in NYC</h1>
+  <div class="readout">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="17" fill="#3B82C4"/><path d="M20,3 A17,17 0 0 1 20,37 Z" fill="#2F3640"/>
+      <circle cx="20" cy="20" r="17" fill="none" stroke="#1F8A9E" stroke-width="3"/>
+    </svg>
+    <span class="q">Is the Sun up?</span><span class="a" id="sunUp">—</span><span class="ph" id="phase">—</span>
+  </div>
+</header>
+
+<main>
+  <div class="pane" id="paneRot"></div>
+  <div class="pane" id="paneSide"></div>
+  <div class="pane" id="paneGraph"></div>
+  <div class="pane" id="paneEnergy"></div>
+  <div class="pane" id="paneFlat"></div>
+  <div class="pane" id="pane3d"></div>
+</main>
+
+<div class="bar">
+  <button id="play" class="play">▶ Play</button>
+  <input id="slider" type="range" min="0" max="24" step="0.05" value="0" aria-label="Time of day">
+  <details class="menu"><summary>Jump ▴</summary><div class="panel">
+    <button data-jump="0">midnight</button>
+    <button data-jump="6">sunrise</button>
+    <button data-jump="9">morning</button>
+    <button data-jump="12">noon</button>
+    <button data-jump="18">sunset</button>
+  </div></details>
+  <details class="menu"><summary>Speed ▴</summary><div class="panel">
+    <button data-speed="0.5">slow</button>
+    <button data-speed="1.2" class="on">normal</button>
+    <button data-speed="3">fast</button>
+  </div></details>
+  <details class="menu"><summary>Lines ▴</summary><div class="panel">
+    <button data-path="hide">hide</button>
+    <button data-path="trace" class="on">draw as we go</button>
+    <button data-path="whole">whole day</button>
+  </div></details>
+  <details class="menu"><summary>Views ▴</summary><div class="panel">
+    <button class="view" data-pane="paneRot">Earth from space</button>
+    <button class="view" data-pane="paneSide">side view</button>
+    <button class="view" data-pane="paneGraph">temperature</button>
+    <button class="view" data-pane="paneEnergy">sunlight in / heat out</button>
+    <button class="view" data-pane="paneFlat">facing south</button>
+    <button class="view" data-pane="pane3d">3D</button>
+  </div></details>
+  <details class="menu"><summary>More ▴</summary><div class="panel">
+    <button id="dirBtn">How direct? (3D)</button>
+    <button id="nightBtn">skip the night</button>
+    <button id="sunBtn">Sun on the left</button>
+    <button id="capBtn" class="on">captions</button>
+  </div></details>
+  <button id="fsBtn" title="full screen (F)">⛶</button>
+</div>
+
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs) => { const e = el("text", Object.assign({x, y}, attrs || {}), parent); e.textContent = s; return e; };
+  const f = (n) => n.toFixed(1);
+
+  // ---------- astronomy (no tilt, as in U3: equinox everywhere) ----------
+  // Local frame: x = east, y = north, z = up. Hour angle H = 15° × (hours from noon).
+  const LAT = 40.7 * Math.PI / 180;     // NYC
+  const sunDir = (t) => { const h = (15 * (t - 12)) * Math.PI / 180;
+    return [-Math.sin(h), -Math.cos(h) * Math.sin(LAT), Math.cos(h) * Math.cos(LAT)]; };
+  const SUNRISE = 6, SUNSET = 18;
+
+  // ---------- energy model: sunlight in, heat out, temperature (shared by the temperature and in/out views) ----------
+  // Sunlight in ∝ sin(Sun's height) (noon = 1, 0 at night). Heat out grows with temperature (out = RATE × T).
+  // Temperature changes by (in − out): it rises while in > out and falls while out > in, so the warmest and
+  // coldest moments are exactly where the two curves cross, and over a whole day in = out (the areas match).
+  // RATE sets the lag: 0.15/h puts the warmest time mid-afternoon (~3:30) and the coldest just after sunrise.
+  const SUN_IN = (t) => Math.max(0, Math.cos(Math.PI * (t - 12) / 12));
+  const MODEL = (() => {
+    const RATE = 0.15, N = 960, dt = 24 / N; let T = 0.32 / RATE, arr = [];
+    for (let d = 0; d < 40; d++) { arr = []; for (let i = 0; i < N; i++) { arr.push(T); T += dt * (SUN_IN(i * dt) - RATE * T); } }
+    arr.push(arr[0]);
+    let mn = Infinity, mx = -Infinity, tMin = 0, tMax = 0;
+    arr.forEach((v, i) => { if (v < mn) { mn = v; tMin = i * dt; } if (v > mx) { mx = v; tMax = i * dt; } });
+    const at = (t) => { const u = Math.min(N, Math.max(0, t / dt)), i = Math.min(N - 1, Math.floor(u)), k = u - i; return arr[i] + (arr[i + 1] - arr[i]) * k; };
+    return { tMin, tMax,
+      out: (t) => RATE * at(t),                                // same units as SUN_IN
+      temp: (t) => 2 * (at(t) - mn) / (mx - mn) - 1 };         // −1 coldest … +1 warmest, for the graph
+  })();
+
+  // ---------- shared drawing helpers ----------
+  function sunSymbol(parent, r) {
+    const g = el("g", {}, parent);
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a), px = -s, py = c, b1 = r + 5, b2 = r + 17, w = 6;
+      el("polygon", {fill: "#FFC20E", points:
+        `${f(b1*c + w*px)},${f(b1*s + w*py)} ${f(b1*c - w*px)},${f(b1*s - w*py)} ${f(b2*c)},${f(b2*s)}`}, g);
+    }
+    el("circle", {r, fill: "#FFC20E"}, g);
+    return g;
+  }
+  function starPath(cx, cy, ro, ri) {
+    let d = "";
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? ri : ro, a = -Math.PI / 2 + i * Math.PI / 5;
+      d += (i ? "L" : "M") + f(cx + r * Math.cos(a)) + "," + f(cy + r * Math.sin(a)); }
+    return d + "Z";
+  }
+  function bubble(parent, cx, cy, lines) {          // Brain Frames thought bubble (view tag)
+    const g = el("g", {}, parent);
+    const p = [[-95,0,30],[-55,-24,34],[0,-30,36],[55,-22,32],[92,2,27],[52,25,30],[-5,30,32],[-62,26,28],[-102,12,20]];
+    p.forEach(([x,y,r]) => el("circle", {cx: cx+x, cy: cy+y, r, fill: "#fff", stroke: "#444", "stroke-width": 2.5}, g));
+    p.forEach(([x,y,r]) => el("circle", {cx: cx+x, cy: cy+y, r: r-2.5, fill: "#fff"}, g));
+    el("ellipse", {cx, cy, rx: 92, ry: 34, fill: "#fff"}, g);
+    el("circle", {cx: cx-62, cy: cy+60, r: 8, fill: "#fff", stroke: "#444", "stroke-width": 2.5}, g);
+    el("circle", {cx: cx-72, cy: cy+75, r: 4.5, fill: "#fff", stroke: "#444", "stroke-width": 2.5}, g);
+    lines.forEach((s, i) => txt(g, cx, cy - 4 + (i - (lines.length - 1) / 2) * 23, s, {"font-size": 17, "text-anchor": "middle", fill: "#222"}));
+  }
+  const DAY_SKY = [234, 243, 251], NIGHT_SKY = [47, 54, 64];
+  function skyColor(t) {                             // blends through twilight near sunrise/sunset
+    const k = Math.min(1, Math.max(0, sunDir(t)[2] / 0.16 + 0.5));
+    const c = NIGHT_SKY.map((n, i) => Math.round(n + (DAY_SKY[i] - n) * k));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  // Path points from sunrise up to time t (or the whole day)
+  function pathD(project, t0, t1, keep) {
+    let d = "";
+    for (let t = t0; t <= t1 + 1e-9; t += 0.1) {
+      const v = sunDir(t); if (keep && !keep(v)) { continue; }
+      const [x, y] = project(v); d += (d ? "L" : "M") + f(x) + "," + f(y);
+    }
+    return d;
+  }
+
+  // ---------- pane 1: facing south (seen from the north side) ----------
+  function makeFlatPane(host) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const CX = 400, CY = 505, S = 320;
+    const P = (v) => [CX - S * v[0], CY - S * v[2]];     // east to the LEFT (you face south)
+    txt(svg, 400, 34, "Facing south", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    const sky = el("path", {d: `M${CX-S},${CY} A${S},${S} 0 0 1 ${CX+S},${CY} Z`}, svg);
+    el("path", {d: `M${CX-S},${CY} A${S},${S} 0 0 1 ${CX+S},${CY}`, fill: "none", stroke: "#9DB7CF", "stroke-width": 2.5}, svg);
+    // straight overhead
+    el("line", {x1: CX, y1: CY, x2: CX, y2: CY - S, stroke: "#888", "stroke-width": 2.5, "stroke-dasharray": "4 7"}, svg);
+    el("circle", {cx: CX, cy: CY - S, r: 6, fill: "#666"}, svg);
+    const ohLabel = txt(svg, CX, CY - S - 16, "straight overhead", {"font-size": 18, fill: "#555", "text-anchor": "middle"});
+    const ghost = el("path", {fill: "none", stroke: "#E0A800", "stroke-opacity": 0.3, "stroke-width": 4, "stroke-dasharray": "3 10", "stroke-linecap": "round"}, svg);
+    const path = el("path", {fill: "none", stroke: "#E0A800", "stroke-width": 5, "stroke-dasharray": "14 10"}, svg);
+    const noonLab = txt(svg, P(sunDir(12))[0] + 12, P(sunDir(12))[1] - 16, "noon: highest, in the south", {"font-size": 18, fill: "#222"});
+    // ground
+    el("line", {x1: 40, y1: CY, x2: 760, y2: CY, stroke: "#7A5230", "stroke-width": 12}, svg);
+    const drop = el("line", {stroke: "#E0A800", "stroke-width": 2.5, "stroke-dasharray": "3 6"}, svg);
+    const dropDot = el("circle", {r: 5, fill: "#E0A800"}, svg);
+    el("path", {d: starPath(CX, CY - 2, 12, 5), fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, svg);
+    makeFigure(svg, 8)(P, [0, 0, -0.012], [0, 0, 1], [-1, 0, 0], 0.19, 1);      // the person at NYC, facing you
+    [["E", CX - S], ["S", CX], ["W", CX + S]].forEach(([s, x]) =>
+      txt(svg, x, CY + 46, s, {"font-size": 28, "font-weight": 700, "text-anchor": "middle", fill: "#222"}));
+    txt(svg, CX + 26, CY + 44, "NYC", {"font-size": 16, "font-weight": 600, fill: "#C2185B"});
+    const sun = sunSymbol(svg, 24);
+    bubble(svg, 128, 92, ["Standing in NYC,", "facing south"]);
+    const cap = txt(svg, 400, 618, "In NYC the Sun is never straight overhead, not even at noon.", {"font-size": 19, "font-style": "italic", "text-anchor": "middle", fill: "#444"});
+    ghost.setAttribute("d", pathD(P, SUNRISE, SUNSET));
+
+    return function update(t, o) {
+      sky.setAttribute("fill", skyColor(t));
+      ohLabel.setAttribute("fill", sunDir(t)[2] > 0 ? "#555" : "#ccc");
+      const up = t >= SUNRISE && t <= SUNSET;
+      path.style.display = o.path === "hide" ? "none" : "";
+      ghost.style.display = o.path === "trace" ? "" : "none";
+      path.setAttribute("d", o.path === "whole" ? pathD(P, SUNRISE, SUNSET) : (up ? pathD(P, SUNRISE, t) : (t > SUNSET ? pathD(P, SUNRISE, SUNSET) : "")));
+      noonLab.style.display = (o.path === "whole" || (o.path === "trace" && t >= 12)) ? "" : "none";
+      noonLab.setAttribute("fill", sunDir(t)[2] > 0 ? "#222" : "#ccc");
+      const [x, y] = P(sunDir(t));
+      [sun, drop, dropDot].forEach((e) => e.style.display = up ? "" : "none");
+      sun.setAttribute("transform", `translate(${f(x)},${f(y)})`);
+      drop.setAttribute("x1", x); drop.setAttribute("y1", y + 24); drop.setAttribute("x2", x); drop.setAttribute("y2", CY - 6);
+      dropDot.setAttribute("cx", x); dropDot.setAttribute("cy", CY - 6);
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+
+  // ---------- pane 2: 3D, from the northeast looking down a little ----------
+  function make3DPane(host, cfg) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const CX = 400, CY = 430, S = 280;
+    const EL = 30 * Math.PI / 180, AZ = (cfg.sunRight ? 205 : -25) * Math.PI / 180;   // NE = U3p6-Sky-Dome-ENE.png; NW = its mirror
+    const se = Math.sin(EL), ce = Math.cos(EL), sa = Math.sin(AZ), ca = Math.cos(AZ);
+    const R3 = [sa, ca, 0], U3 = [-ca * se, sa * se, ce], C3 = [ca * ce, -sa * ce, se];
+    const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+    const P = (v) => [CX + S * dot(v, R3), CY - S * dot(v, U3)];
+    const front = (v) => dot(v, C3) > 0;
+    const ring = () => { let d = ""; for (let a = 0; a <= 360; a += 3) { const r = a * Math.PI / 180;
+      const [x, y] = P([Math.cos(r), Math.sin(r), 0]); d += (d ? "L" : "M") + f(x) + "," + f(y); } return d + "Z"; };
+
+    txt(svg, 400, 34, "3D view", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    const sky = el("path", {d: `M${CX-S},${CY} A${S},${S} 0 0 1 ${CX+S},${CY} Z`}, svg);
+    el("path", {d: ring(), fill: "#E9DCCB", stroke: "#7A5230", "stroke-width": 5}, svg);
+    const guide = (a, b) => { const [x1, y1] = P(a), [x2, y2] = P(b);
+      el("line", {x1, y1, x2, y2, stroke: "#7A5230", "stroke-opacity": 0.35, "stroke-width": 2, "stroke-dasharray": "8 7"}, svg); };
+    guide([0, -1, 0], [0, 1, 0]); guide([1, 0, 0], [-1, 0, 0]);
+    // How direct? (cause ②): a square beam of sunlight from the Sun to the person, and its patch on a ground grid.
+    // The beam's cross-section is 2 grid squares, so straight overhead it would light exactly 2; a 30° Sun spreads
+    // the same light over 4 (ACT2-VISUAL-KEY energy patch: direct = 2 bright squares, slanted = 4 pale).
+    const CELL = 0.1, GRID = 4, BEAM_R = CELL * Math.sqrt(2 / Math.PI), L = GRID * CELL;   // round beam, area = 2 squares
+    // concentration colour scale (sin of the Sun's height: 1 = straight overhead): spread out → concentrated
+    const HEAT = [[0, "#FFF3C4"], [0.3, "#FFC20E"], [0.6, "#F28C28"], [1, "#D7263D"]];
+    const heat = (k) => { for (let i = 1; i < HEAT.length; i++) if (k <= HEAT[i][0])
+      return mix(HEAT[i - 1][1], HEAT[i][1], (k - HEAT[i - 1][0]) / (HEAT[i][0] - HEAT[i - 1][0])); return HEAT[HEAT.length - 1][1]; };
+    const proj2 = (p) => { const [x, y] = P(p); return f(x) + "," + f(y); };
+    const dirG = el("g", {}, svg);
+    const gcp = el("clipPath", {id: "gridClip3d"}, el("defs", {}, svg));
+    const sqD = "M" + [[-L, -L, 0], [L, -L, 0], [L, L, 0], [-L, L, 0]].map(proj2).join("L") + "Z";
+    el("path", {d: sqD}, gcp);
+    el("path", {d: sqD, fill: "#fff", "fill-opacity": 0.55}, dirG);
+    const patch = el("path", {"clip-path": "url(#gridClip3d)"}, dirG);
+    const gl = el("g", {stroke: "#7A5230", "stroke-opacity": 0.5, "stroke-width": 1.5}, dirG);
+    for (let k = -GRID; k <= GRID; k++) { const s = k * CELL;
+      [[[s, -L, 0], [s, L, 0]], [[-L, s, 0], [L, s, 0]]].forEach(([a, b]) => { const [x1, y1] = P(a), [x2, y2] = P(b); el("line", {x1, y1, x2, y2}, gl); }); }
+    const patchEdge = el("path", {fill: "none", stroke: "#8A4B0F", "stroke-opacity": 0.7, "stroke-width": 2.5, "clip-path": "url(#gridClip3d)"}, dirG);
+    const ghostBack = el("path", {fill: "none", stroke: "#E0A800", "stroke-opacity": 0.2, "stroke-width": 4, "stroke-dasharray": "3 10", "stroke-linecap": "round"}, svg);
+    const pathBack = el("path", {fill: "none", stroke: "#E0A800", "stroke-opacity": 0.45, "stroke-width": 5, "stroke-dasharray": "14 10"}, svg);
+    const [zx, zy] = P([0, 0, 1]);
+    el("line", {x1: CX, y1: CY, x2: zx, y2: zy, stroke: "#666", "stroke-width": 2.5, "stroke-dasharray": "4 7"}, svg);
+    el("circle", {cx: zx, cy: zy, r: 6, fill: "#666"}, svg);
+    el("line", {x1: zx, y1: zy, x2: zx, y2: CY - S - 10, stroke: "#999", "stroke-width": 1.5}, svg);
+    const ohLabel = txt(svg, zx, CY - S - 16, "straight overhead", {"font-size": 18, fill: "#555", "text-anchor": "middle"});
+    const drop = el("line", {stroke: "#E0A800", "stroke-width": 2.5, "stroke-dasharray": "3 6"}, svg);
+    const dropDot = el("circle", {r: 5, fill: "#E0A800"}, svg);
+    el("path", {d: ring(), fill: "#BFD9F0", "fill-opacity": 0.08}, svg);     // glass
+    el("path", {d: starPath(CX, CY, 12, 5), fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, svg);
+    makeFigure(svg, 8)(P, [0, 0, 0], [0, 0, 1], R3, 0.2, 1);
+    txt(svg, CX + 18, CY + 32, "NYC", {"font-size": 16, "font-weight": 600, fill: "#C2185B"});
+    const ghostFront = el("path", {fill: "none", stroke: "#E0A800", "stroke-opacity": 0.35, "stroke-width": 4, "stroke-dasharray": "3 10", "stroke-linecap": "round"}, svg);
+    const pathFront = el("path", {fill: "none", stroke: "#E0A800", "stroke-width": 5, "stroke-dasharray": "14 10"}, svg);
+    const beam = el("path", {fill: "#FFC20E", "fill-opacity": 0.3, stroke: "#E0A800", "stroke-opacity": 0.7, "stroke-width": 1.5}, svg);
+    const ray = el("line", {stroke: "#F28C28", "stroke-width": 6, "stroke-linecap": "round"}, svg);
+    const rayHead = el("polygon", {fill: "#F28C28"}, svg);
+    const dirBox = el("g", {transform: cfg.sunRight ? "" : "translate(480,0)"}, svg);   // on the side away from the Sun's path
+    el("rect", {x: 14, y: 58, width: 292, height: 156, rx: 10, fill: "#fff", stroke: "#F28C28", "stroke-width": 3}, dirBox);
+    txt(dirBox, 28, 86, "② How direct?", {"font-size": 20, "font-weight": 700, fill: "#C46A12"});
+    const dirA = txt(dirBox, 28, 113, "", {"font-size": 18, fill: "#222"});
+    txt(dirBox, 28, 137, "Straight overhead it would be 2.", {"font-size": 15, fill: "#666"});
+    const gradId = "heatGrad3d", gr = el("linearGradient", {id: gradId}, el("defs", {}, svg));
+    HEAT.forEach(([k, c]) => el("stop", {offset: k, "stop-color": c}, gr));
+    el("rect", {x: 28, y: 160, width: 264, height: 18, rx: 4, fill: `url(#${gradId})`, stroke: "#999", "stroke-width": 1}, dirBox);
+    txt(dirBox, 28, 199, "spread out", {"font-size": 15, fill: "#555"});
+    txt(dirBox, 292, 199, "concentrated", {"font-size": 15, fill: "#555", "text-anchor": "end"});
+    const heatMark = el("polygon", {fill: "#222"}, dirBox);
+    const sun = sunSymbol(svg, 22);
+    el("path", {d: `M${CX-S},${CY} A${S},${S} 0 0 1 ${CX+S},${CY}`, fill: "none", stroke: "#9DB7CF", "stroke-width": 2.5}, svg);
+    const letter = (v, k, s, dx, dy) => { const [x, y] = P([v[0]*k, v[1]*k, 0]);
+      txt(svg, x + (dx || 0), y + 10 + (dy || 0), s, {"font-size": 28, "font-weight": 700, "text-anchor": "middle", fill: "#222"}); };
+    [[[1, 0], "E"], [[-1, 0], "W"], [[0, 1], "N"], [[0, -1], "S"]].forEach(([v, s]) => front([v[0], v[1], 0.001])
+      ? letter(v, 1.12, s) : letter(v, 1.0, s, 26, -24));      // the far letter tucks above the rim
+    bubble(svg, cfg.sunRight ? 650 : 150, 92, [cfg.sunRight ? "From the northwest," : "From the northeast,", "looking down a little"]);
+    const cap = txt(svg, 400, 618, "Dashed lines drop from the Sun to the ground: how high it is.", {"font-size": 19, "font-style": "italic", "text-anchor": "middle", fill: "#444"});
+    ghostBack.setAttribute("d", pathD(P, SUNRISE, SUNSET, (v) => !front(v)));
+    ghostFront.setAttribute("d", pathD(P, SUNRISE, SUNSET, front));
+
+    return function update(t, o) {
+      sky.setAttribute("fill", skyColor(t));
+      ohLabel.setAttribute("fill", sunDir(t)[2] > 0 ? "#555" : "#ccc");
+      const up = t >= SUNRISE && t <= SUNSET;
+      const end = o.path === "whole" ? SUNSET : (up ? t : (t > SUNSET ? SUNSET : SUNRISE - 1));
+      [pathBack, pathFront].forEach((p) => p.style.display = o.path === "hide" ? "none" : "");
+      [ghostBack, ghostFront].forEach((p) => p.style.display = o.path === "trace" ? "" : "none");
+      pathBack.setAttribute("d", end >= SUNRISE ? pathD(P, SUNRISE, end, (v) => !front(v)) : "");
+      pathFront.setAttribute("d", end >= SUNRISE ? pathD(P, SUNRISE, end, front) : "");
+      const v = sunDir(t), [x, y] = P(v), [gx, gy] = P([v[0], v[1], 0]);
+      [sun, drop, dropDot].forEach((e) => e.style.display = up ? "" : "none");
+      const k = 1 + 0.2 * dot(v, C3);
+      sun.setAttribute("transform", `translate(${f(x)},${f(y)}) scale(${k.toFixed(3)})`);
+      drop.setAttribute("x1", x); drop.setAttribute("y1", y + 22 * k); drop.setAttribute("x2", gx); drop.setAttribute("y2", gy);
+      dropDot.setAttribute("cx", gx); dropDot.setAttribute("cy", gy);
+      // How direct?
+      const lit = o.direct && up && v[2] > 0.02;
+      dirG.style.display = o.direct ? "" : "none"; dirBox.style.display = o.direct ? "" : "none";
+      [beam, ray, rayHead, patch, patchEdge, heatMark].forEach((e) => e.style.display = lit ? "" : "none");
+      if (lit) {
+        const a = v3.norm([-v[1], v[0], 0]);                                   // across the beam, flat to the ground
+        const b = [v[1]*a[2] - v[2]*a[1], v[2]*a[0] - v[0]*a[2], v[0]*a[1] - v[1]*a[0]];   // across the beam, tipped up
+        const rim = []; for (let i = 0; i < 48; i++) { const th = 2 * Math.PI * i / 48;
+          rim.push(v3.add(v3.add([0, 0, 0], a, BEAM_R * Math.cos(th)), b, BEAM_R * Math.sin(th))); }   // the beam's round edge
+        const ground = rim.map((q) => v3.add(q, v, -q[2] / v[2]));          // slid along the light to the ground: an ellipse
+        const top = rim.map((q) => v3.add(q, v, 1));                         // the same circle at the Sun
+        const gd = "M" + ground.map(proj2).join("L") + "Z";
+        patch.setAttribute("d", gd); patchEdge.setAttribute("d", gd);
+        const hc = heat(v[2]);
+        patch.setAttribute("fill", hc);
+        const mx = 28 + 264 * v[2];
+        heatMark.setAttribute("points", `${f(mx)},158 ${f(mx - 8)},146 ${f(mx + 8)},146`);
+        beam.setAttribute("d", hull(ground.concat(top).map(P)));
+        const [x1, y1] = P(v3.add([0, 0, 0], v, 0.9)), [x2, y2] = P(v3.add([0, 0, 0], v, 0.07));
+        const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+        ray.setAttribute("x1", x1); ray.setAttribute("y1", y1); ray.setAttribute("x2", x2 - 16 * ux); ray.setAttribute("y2", y2 - 16 * uy);
+        rayHead.setAttribute("points", `${f(x2)},${f(y2)} ${f(x2 - 22*ux - 11*uy)},${f(y2 - 22*uy + 11*ux)} ${f(x2 - 22*ux + 11*uy)},${f(y2 - 22*uy - 11*ux)}`);
+        const n = 2 / v[2];
+        dirA.textContent = n > 20 ? "Beam covers over 20 squares" : `Beam covers about ${n < 10 ? n.toFixed(1) : Math.round(n)} squares`;
+      } else dirA.textContent = "Sun down: no sunlight here";
+      cap.textContent = o.direct ? "Lower Sun: the same beam spreads over more squares, so each square gets less."
+                                 : "Dashed lines drop from the Sun to the ground: how high it is.";
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+  // colour halfway-style blend (k = 0 → c0, 1 → c1)
+  function mix(c0, c1, k) {
+    const p = (c, i) => parseInt(c.slice(1 + 2 * i, 3 + 2 * i), 16);
+    return "rgb(" + [0, 1, 2].map((i) => Math.round(p(c0, i) + (p(c1, i) - p(c0, i)) * Math.min(1, Math.max(0, k)))).join(",") + ")";
+  }
+  // outline of a set of screen points (convex hull), as a path
+  function hull(pts) {
+    const s = pts.slice().sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [], hi = [];
+    s.forEach((p) => { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); });
+    s.slice().reverse().forEach((p) => { while (hi.length >= 2 && cross(hi[hi.length - 2], hi[hi.length - 1], p) <= 0) hi.pop(); hi.push(p); });
+    const h = lo.slice(0, -1).concat(hi.slice(0, -1));
+    return "M" + h.map(([x, y]) => f(x) + "," + f(y)).join("L") + "Z";
+  }
+
+  // ---------- stick figure: the person standing at NYC, drawn in 3D so it leans correctly in every view ----------
+  // project(v) → [x, y] screen; base = feet (3D); up = which way "up" is for the person; side = left-right of the body.
+  const v3 = {add: (a, b, k) => [a[0] + k*b[0], a[1] + k*b[1], a[2] + k*b[2]],
+              dot: (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2],
+              norm: (a) => { const m = Math.hypot(a[0], a[1], a[2]); return [a[0]/m, a[1]/m, a[2]/m]; }};
+  function makeFigure(parent, headPx) {
+    const g = el("g", {stroke: "#111", "stroke-width": 4.5, "stroke-linecap": "round", "stroke-linejoin": "round", fill: "none"}, parent);
+    const legs = el("polyline", {}, g), body = el("line", {}, g), arms = el("polyline", {}, g);
+    const head = el("circle", {r: headPx, fill: "#fff", "stroke-width": 4}, g);
+    return function draw(project, base, up, side, h, opacity) {
+      const P = (u, s) => project(v3.add(v3.add(base, up, u * h), side, s * h));
+      const pt = (q) => f(q[0]) + "," + f(q[1]);
+      const hip = P(0.42, 0), neck = P(0.74, 0), hd = P(0.9, 0);
+      legs.setAttribute("points", [P(0, -0.2), hip, P(0, 0.2)].map(pt).join(" "));
+      body.setAttribute("x1", hip[0]); body.setAttribute("y1", hip[1]); body.setAttribute("x2", neck[0]); body.setAttribute("y2", neck[1]);
+      arms.setAttribute("points", [P(0.46, -0.26), P(0.66, 0), P(0.46, 0.26)].map(pt).join(" "));
+      head.setAttribute("cx", hd[0]); head.setAttribute("cy", hd[1]);
+      g.setAttribute("opacity", opacity == null ? 1 : opacity);
+    };
+  }
+  // the body faces the viewer: its left-right runs along the screen's right direction, kept flat to the ground
+  const faceSide = (right, up) => { const d = v3.dot(right, up); return v3.norm(v3.add(right, up, -d)); };
+
+  // ---------- pane: Earth from space (U3 p. 5), looking down on the North Pole ----------
+  // Sun on the right = the same picture turned 180° (still counterclockwise, still accurate).
+  function makeRotationPane(host, cfg) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const SR = !!cfg.sunRight, PX = 400, PY = 340;          // turn about the pane centre
+    const CX = 480, CY = 340, R = 180, LAT = 40.7 * Math.PI / 180;
+    txt(svg, 400, 34, "Earth from space", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    el("rect", {x: 640, y: 14, width: 150, height: 34, rx: 6, fill: "#fff", stroke: "#555", "stroke-width": 2}, svg);
+    txt(svg, 715, 37, "NOT TO SCALE", {"font-size": 15, "font-weight": 600, fill: "#555", "text-anchor": "middle", "letter-spacing": 1.2});
+    const scene = el("g", {transform: SR ? `rotate(180 ${PX} ${PY})` : ""}, svg);
+    const sg = el("g", {transform: "translate(80,340)"}, scene);
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a), px = -s, py = c;
+      el("polygon", {fill: "#FFC20E", points: `${f(40*c + 8*px)},${f(40*s + 8*py)} ${f(40*c - 8*px)},${f(40*s - 8*py)} ${f(58*c)},${f(58*s)}`}, sg); }
+    el("circle", {r: 32, fill: "#FFC20E"}, sg);
+    [255, 340, 425].forEach((y) => {
+      el("line", {x1: 155, y1: y, x2: 238, y2: y, stroke: "#F28C28", "stroke-width": 7}, scene);
+      el("polygon", {points: `270,${y} 234,${y - 16} 234,${y + 16}`, fill: "#F28C28"}, scene);
+    });
+    const clipId = "globeClipRot";
+    const defs = el("defs", {}, svg); const cp = el("clipPath", {id: clipId}, defs); el("circle", {cx: CX, cy: CY, r: R}, cp);
+    el("circle", {cx: CX, cy: CY, r: R, fill: "#3B82C4"}, scene);
+    const mg = el("g", {"clip-path": `url(#${clipId})`, stroke: "#fff", "stroke-opacity": 0.35, "stroke-width": 2}, scene);
+    const meridians = []; for (let k = 0; k < 12; k++) meridians.push(el("line", {x1: CX, y1: CY}, mg));
+    el("circle", {cx: CX, cy: CY, r: R * Math.cos(LAT), fill: "none", stroke: "#fff", "stroke-opacity": 0.35, "stroke-width": 2, "stroke-dasharray": "6 6"}, scene);
+    el("path", {d: `M${CX},${CY - R} A${R},${R} 0 0 1 ${CX},${CY + R} Z`, fill: "#2F3640", "fill-opacity": 0.85}, scene);
+    el("circle", {cx: CX, cy: CY, r: R, fill: "none", stroke: "#333", "stroke-width": 5}, scene);
+    el("circle", {cx: CX, cy: CY, r: 60, fill: "none", stroke: "#7B3FA0", "stroke-width": 6}, scene);
+    el("polygon", {points: `${CX - 26},${CY - 60} ${CX - 6},${CY - 71} ${CX - 6},${CY - 49}`, fill: "#7B3FA0"}, scene);
+    el("circle", {cx: CX, cy: CY, r: 8, fill: "#fff"}, scene);
+    const nyc = el("path", {fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, scene);
+    const fig = makeFigure(scene, 7);
+    // labels stay upright: place them at the turned positions
+    const lab = (x, y, s, h, anchor) => [txt(svg, x, y, s, {"font-size": 21, "font-weight": 700, "text-anchor": anchor}), h];
+    const GX = SR ? 2 * PX - CX : CX;                        // globe centre after the turn
+    const labs = [lab(GX, SR ? CY + R + 32 : CY - R - 16, "sunrise", 6, "middle"), lab(GX, SR ? CY - R - 16 : CY + R + 32, "sunset", 18, "middle"),
+      lab(SR ? 2 * PX - 212 : 212, 318, "noon", 12, "middle"), lab(SR ? GX - R - 12 : GX + R + 12, CY + 8, "midnight", 0, SR ? "end" : "start")];
+    bubble(svg, 130, 100, ["Looking down on", "the North Pole"]);
+    const cap = el("g", {"font-size": 19, "text-anchor": "middle", fill: "#444", "font-style": "italic"}, svg);
+    txt(cap, 400, 596, "Earth spins once a day (purple ring). The spin carries NYC (★)");
+    txt(cap, 400, 622, "from night into day and back.");
+    // 3D → screen for this view (camera above the North Pole): X right, Y up the screen, Z toward the viewer
+    const proj = (v) => [CX + R * v[0], CY - R * v[1]];
+    const angle = (t) => (180 + 15 * (t - 12)) * Math.PI / 180;
+    return function update(t, o) {
+      const a = angle(t);
+      meridians.forEach((m, k) => { const b = a + k * Math.PI / 6; m.setAttribute("x2", CX + R * Math.cos(b)); m.setAttribute("y2", CY - R * Math.sin(b)); });
+      const p = [Math.cos(LAT) * Math.cos(a), Math.cos(LAT) * Math.sin(a), Math.sin(LAT)];
+      const [sx, sy] = proj(p); nyc.setAttribute("d", starPath(sx, sy, 13, 5.5));
+      fig(proj, p, p, faceSide([1, 0, 0], p), 0.34, 1);
+      labs.forEach(([e, h]) => e.setAttribute("fill", Math.abs(((t - h + 36) % 24) - 12) < 0.5 ? "#C2185B" : "#222"));
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+
+  // ---------- pane: Earth from the side, from a little above (Sun on the left, or the right) ----------
+  function makeSidePane(host, cfg) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const SR = !!cfg.sunRight;
+    const CX = SR ? 320 : 480, CY = 350, R = 175, LATR = 40.7 * Math.PI / 180;
+    const E = 25 * Math.PI / 180, se = Math.sin(E), ce = Math.cos(E);
+    // World frame as in the top-down view: Sun toward -X, +Z = north. Camera at -Y (Sun left) or +Y (Sun right), raised 25°.
+    const sgn = SR ? -1 : 1;
+    const RT = [sgn, 0, 0], UP = [0, sgn * se, ce], TOW = [0, -sgn * ce, se];
+    const dot = v3.dot;
+    const P = (v) => [CX + R * dot(v, RT), CY - R * dot(v, UP)];
+    const vis = (v) => dot(v, TOW) > 0;
+    const poly = (pts) => pts.map(([x, y], i) => (i ? "L" : "M") + f(x) + "," + f(y)).join("");
+    const circlePts = (fn, n) => { const out = []; for (let i = 0; i <= n; i++) out.push(fn(2 * Math.PI * i / n)); return out; };
+    function runs(pts3) { const vs = [], hs = []; let cur = null, curVis = null;
+      pts3.forEach((p) => { const v = vis(p); if (v !== curVis) { if (cur) (curVis ? vs : hs).push(cur); cur = cur ? [cur[cur.length - 1]] : []; curVis = v; } cur.push(P(p)); });
+      if (cur) (curVis ? vs : hs).push(cur); return [vs.map(poly).join(""), hs.map(poly).join("")]; }
+    txt(svg, 400, 34, "Earth from the side", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    el("rect", {x: 640, y: 14, width: 150, height: 34, rx: 6, fill: "#fff", stroke: "#555", "stroke-width": 2}, svg);
+    txt(svg, 715, 37, "NOT TO SCALE", {"font-size": 15, "font-weight": 600, fill: "#555", "text-anchor": "middle", "letter-spacing": 1.2});
+    const SX = SR ? 720 : 80, dir = SR ? -1 : 1;
+    const sg = el("g", {transform: `translate(${SX},350)`}, svg);
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a), px = -s, py = c;
+      el("polygon", {fill: "#FFC20E", points: `${f(40*c + 8*px)},${f(40*s + 8*py)} ${f(40*c - 8*px)},${f(40*s - 8*py)} ${f(58*c)},${f(58*s)}`}, sg); }
+    el("circle", {r: 32, fill: "#FFC20E"}, sg);
+    [265, 350, 435].forEach((y) => {
+      el("line", {x1: SX + dir * 75, y1: y, x2: SX + dir * 158, y2: y, stroke: "#F28C28", "stroke-width": 7}, svg);
+      el("polygon", {points: `${SX + dir * 190},${y} ${SX + dir * 154},${y - 16} ${SX + dir * 154},${y + 16}`, fill: "#F28C28"}, svg);
+    });
+    const [spx, spy] = P([0, 0, -1.35]), [npx, npy] = P([0, 0, 1]), [ntx, nty] = P([0, 0, 1.38]);
+    el("line", {x1: spx, y1: spy, x2: CX, y2: CY, stroke: "#444", "stroke-width": 3, "stroke-dasharray": "9 7"}, svg);
+    el("circle", {cx: CX, cy: CY, r: R, fill: "#3B82C4"}, svg);
+    const eq = runs(circlePts((a) => [Math.cos(a), Math.sin(a), 0], 120));
+    el("path", {d: eq[0], fill: "none", stroke: "#fff", "stroke-opacity": 0.35, "stroke-width": 2}, svg);
+    const lat = runs(circlePts((a) => [Math.cos(LATR) * Math.cos(a), Math.cos(LATR) * Math.sin(a), Math.sin(LATR)], 160));
+    el("path", {d: lat[0], fill: "none", stroke: "#fff", "stroke-opacity": 0.55, "stroke-width": 2.5, "stroke-dasharray": "7 6"}, svg);
+    el("path", {d: `M${CX},${CY - R} A${R},${R} 0 0 ${SR ? 0 : 1} ${CX},${CY + R} Z`, fill: "#2F3640", "fill-opacity": 0.85}, svg);
+    el("circle", {cx: CX, cy: CY, r: R, fill: "none", stroke: "#333", "stroke-width": 5}, svg);
+    el("path", {d: lat[1], fill: "none", stroke: "#fff", "stroke-opacity": 0.22, "stroke-width": 2, "stroke-dasharray": "3 7"}, svg);
+    el("circle", {cx: npx, cy: npy, r: 5, fill: "#fff"}, svg);
+    el("line", {x1: npx, y1: npy, x2: ntx, y2: nty, stroke: "#444", "stroke-width": 3, "stroke-dasharray": "9 7"}, svg);
+    txt(svg, ntx, nty - 10, "N", {"font-size": 24, "font-weight": 700, "text-anchor": "middle", fill: "#444"});
+    el("path", {d: poly(circlePts((a) => [0.32 * Math.cos(a), 0.32 * Math.sin(a), 1.2], 80).map(P)), fill: "none", stroke: "#7B3FA0", "stroke-width": 5}, svg);
+    const [ax, ay] = P([0.05 * sgn, -0.32 * sgn, 1.2]);      // front of the ring; it moves to the right
+    el("polygon", {points: `${f(ax + 14)},${f(ay)} ${f(ax - 6)},${f(ay - 10)} ${f(ax - 6)},${f(ay + 10)}`, fill: "#7B3FA0"}, svg);
+    const plate = el("path", {fill: "#7A5230", "fill-opacity": 0.9, stroke: "#5a3c22", "stroke-width": 1.5}, svg);
+    const star = el("path", {fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, svg);
+    const fig = makeFigure(svg, 7);
+    bubble(svg, SR ? 130 : 130, 100, ["From space,", SR ? "Sun on the right" : "Sun on the left"]);
+    const cap = el("g", {"font-size": 19, "text-anchor": "middle", fill: "#444", "font-style": "italic"}, svg);
+    txt(cap, 400, 596, "The person stands on NYC. Earth's spin carries them");
+    txt(cap, 400, 622, "from night into day and back.");
+    const ang = (t) => (180 + 15 * (t - 12)) * Math.PI / 180;
+    return function update(t, o) {
+      const a = ang(t), cl = Math.cos(LATR), sl = Math.sin(LATR);
+      const p = [cl * Math.cos(a), cl * Math.sin(a), sl];
+      const front = vis(p), [sx, sy] = P(p), op = front ? 1 : 0.25;
+      const east = [-Math.sin(a), Math.cos(a), 0], north = [-sl * Math.cos(a), -sl * Math.sin(a), cl];
+      plate.setAttribute("d", poly(circlePts((q) => v3.add(v3.add(p, east, 0.22 * Math.cos(q)), north, 0.22 * Math.sin(q)), 40).map(P)) + "Z");
+      plate.setAttribute("opacity", op);
+      star.setAttribute("d", starPath(sx, sy, 12, 5)); star.setAttribute("opacity", op);
+      fig(P, p, p, faceSide(RT, p), 0.36, op);
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+
+  // ---------- pane: NYC temperature through one day (U3 p. 5) ----------
+  function makeGraphPane(host) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const X0 = 90, X1 = 740, YM = 300, AMP = 135;
+    const tx = (t) => X0 + (X1 - X0) * t / 24;
+    // Shape only, from the shared energy model: coldest just after sunrise, warmest mid-afternoon
+    const ty = (t) => YM - AMP * MODEL.temp(t);
+    const curveD = (t0, t1) => { let d = ""; for (let t = t0; t <= t1 + 1e-9; t += 0.1) d += (d ? "L" : "M") + f(tx(t)) + "," + f(ty(t)); return d; };
+    txt(svg, 400, 34, "NYC temperature", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    txt(svg, 400, 68, "The shape only. We graph real NYC data in class.", {"font-size": 17, "font-style": "italic", "text-anchor": "middle", fill: "#777"});
+    el("line", {x1: X0, y1: 480, x2: X0, y2: 112, stroke: "#555", "stroke-width": 3}, svg);
+    el("polygon", {points: `${X0},94 ${X0 - 9},114 ${X0 + 9},114`, fill: "#555"}, svg);
+    el("line", {x1: X0, y1: 480, x2: X1, y2: 480, stroke: "#888", "stroke-width": 3}, svg);
+    txt(svg, X0 + 18, 118, "warmer", {"font-size": 18, fill: "#555"});
+    const ghost = el("path", {d: curveD(0, 24), fill: "none", stroke: "#D7263D", "stroke-opacity": 0.18, "stroke-width": 5, "stroke-dasharray": "2 10", "stroke-linecap": "round"}, svg);
+    const curve = el("path", {fill: "none", stroke: "#D7263D", "stroke-width": 6, "stroke-linejoin": "round", "stroke-linecap": "round"}, svg);
+    const warm = txt(svg, tx(MODEL.tMax), 150, "warmest: afternoon", {"font-size": 19, "font-weight": 700, fill: "#D7263D", "text-anchor": "middle"});
+    const cold = txt(svg, tx(MODEL.tMin) + 20, 470, "coldest: around sunrise", {"font-size": 19, "font-weight": 700, fill: "#D7263D", "text-anchor": "middle"});
+    const dotC = el("circle", {r: 10, fill: "#D7263D", stroke: "#fff", "stroke-width": 3}, svg);
+    // day-length bar
+    el("rect", {x: X0, y: 500, width: X1 - X0, height: 26, fill: "#2F3640"}, svg);
+    el("rect", {x: tx(6), y: 500, width: tx(18) - tx(6), height: 26, fill: "#FFD95A"}, svg);
+    [[0, "midnight"], [6, "sunrise"], [12, "noon"], [18, "sunset"], [24, "midnight"]].forEach(([h, s]) =>
+      txt(svg, tx(h), 556, s, {"font-size": 17, fill: "#444", "text-anchor": "middle"}));
+    const now = el("line", {y1: 96, y2: 530, stroke: "#C2185B", "stroke-width": 2.5, "stroke-dasharray": "7 6"}, svg);
+    const barStar = el("path", {fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, svg);
+    const cap = el("g", {"font-size": 19, "text-anchor": "middle", fill: "#444", "font-style": "italic"}, svg);
+    txt(cap, 400, 596, "Sun up: the ground absorbs sunlight and warms.");
+    txt(cap, 400, 622, "Sun down: it keeps giving off heat and cools.");
+    return function update(t, o) {
+      const hide = o.path === "hide", whole = o.path === "whole";
+      ghost.style.display = o.path === "trace" ? "" : "none";
+      curve.style.display = hide ? "none" : "";
+      curve.setAttribute("d", whole ? curveD(0, 24) : curveD(0, t));
+      cold.style.display = !hide && (whole || t >= MODEL.tMin + 0.4) ? "" : "none";
+      warm.style.display = !hide && (whole || t >= MODEL.tMax + 0.4) ? "" : "none";
+      dotC.style.display = hide ? "none" : "";
+      dotC.setAttribute("cx", tx(t)); dotC.setAttribute("cy", ty(t));
+      now.setAttribute("x1", tx(t)); now.setAttribute("x2", tx(t)); now.setAttribute("y1", hide ? 490 : 96);
+      barStar.setAttribute("d", starPath(tx(t), 513, 16, 6.5));
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+
+  // ---------- pane: sunlight in vs. heat out (same time axis as the temperature graph, so the two line up) ----------
+  function makeEnergyPane(host) {
+    const svg = el("svg", {viewBox: "0 0 800 640", preserveAspectRatio: "xMidYMid meet"}, host);
+    const X0 = 90, X1 = 740, Y0 = 480, H = 340;            // same x axis and day bar as the temperature graph
+    const tx = (t) => X0 + (X1 - X0) * t / 24, ey = (e) => Y0 - H * e;
+    const IN = "#F28C28", OUT = "#D7263D", WARM = "#FDE3C8", COOL = "#D6E4F0";
+    const line = (fn, t0, t1) => { let d = ""; for (let t = t0; t <= t1 + 1e-9; t += 0.1) d += (d ? "L" : "M") + f(tx(t)) + "," + f(ey(fn(t))); return d; };
+    const gap = (t0, t1) => {                                 // the space between the two curves, t0 → t1
+      if (t1 <= t0) return ""; const pts = [];
+      for (let t = t0; t < t1; t += 0.1) pts.push([t, SUN_IN(t), MODEL.out(t)]); pts.push([t1, SUN_IN(t1), MODEL.out(t1)]);
+      return "M" + pts.map(([t, a]) => f(tx(t)) + "," + f(ey(a))).join("L") + "L" + pts.reverse().map(([t, , b]) => f(tx(t)) + "," + f(ey(b))).join("L") + "Z"; };
+    const {tMin, tMax} = MODEL;
+    txt(svg, 400, 34, "Sunlight in vs. heat out", {"font-size": 26, "font-weight": 700, "text-anchor": "middle", fill: "#222"});
+    const now = txt(svg, 400, 68, "", {"font-size": 18, "font-weight": 600, "text-anchor": "middle", fill: "#555"});
+    const fills = el("g", {}, svg);
+    const coolA = el("path", {fill: COOL}, fills), warmF = el("path", {fill: WARM}, fills), coolB = el("path", {fill: COOL}, fills);
+    el("line", {x1: X0, y1: Y0, x2: X0, y2: 112, stroke: "#555", "stroke-width": 3}, svg);
+    el("polygon", {points: `${X0},94 ${X0 - 9},114 ${X0 + 9},114`, fill: "#555"}, svg);
+    el("line", {x1: X0, y1: Y0, x2: X1, y2: Y0, stroke: "#888", "stroke-width": 3}, svg);
+    txt(svg, X0 + 18, 118, "more energy", {"font-size": 18, fill: "#555"});
+    // where in = out: the warmest and coldest moments on the temperature graph
+    const marks = [[tMin, "coldest"], [tMax, "warmest"]].map(([h, s]) => {
+      const g = el("g", {}, svg);
+      const ly = h < 12 ? ey(0.36) : 126;                    // coldest: low, left of its line; warmest: top, right of it
+      el("line", {x1: tx(h), x2: tx(h), y1: Y0, y2: ly - 6, stroke: "#C2185B", "stroke-width": 2, "stroke-dasharray": "3 6", "stroke-opacity": 0.6}, g);
+      txt(g, tx(h) + (h < 12 ? -8 : 8), ly, `in = out: ${s}`, {"font-size": 16, "font-weight": 600, fill: "#C2185B", "text-anchor": h < 12 ? "end" : "start"});
+      return g; });
+    const ghostIn = el("path", {d: line(SUN_IN, 0, 24), fill: "none", stroke: IN, "stroke-opacity": 0.25, "stroke-width": 5, "stroke-dasharray": "2 10", "stroke-linecap": "round"}, svg);
+    const ghostOut = el("path", {d: line(MODEL.out, 0, 24), fill: "none", stroke: OUT, "stroke-opacity": 0.2, "stroke-width": 5, "stroke-dasharray": "2 10", "stroke-linecap": "round"}, svg);
+    const cIn = el("path", {fill: "none", stroke: IN, "stroke-width": 6, "stroke-linejoin": "round", "stroke-linecap": "round"}, svg);
+    const cOut = el("path", {fill: "none", stroke: OUT, "stroke-width": 6, "stroke-dasharray": "16 9", "stroke-linejoin": "round"}, svg);
+    const labIn = txt(svg, tx(9.3) - 10, ey(SUN_IN(9.3)) - 8, "sunlight in", {"font-size": 20, "font-weight": 700, fill: IN, "text-anchor": "end"});
+    const labOut = txt(svg, tx(18.6), ey(MODEL.out(18.6)) - 16, "heat out", {"font-size": 20, "font-weight": 700, fill: OUT, "text-anchor": "start"});
+    const labWarm = txt(svg, tx(12.4), ey(0.6), "warming", {"font-size": 19, "font-weight": 700, fill: "#B5651D", "text-anchor": "middle"});
+    const labCool = txt(svg, tx(21.6), ey(0.06), "cooling", {"font-size": 19, "font-weight": 700, fill: "#3E6D96", "text-anchor": "middle"});
+    const bracket = el("line", {"stroke-width": 5, "stroke-linecap": "round"}, svg);
+    const dotIn = el("circle", {r: 9, fill: IN, stroke: "#fff", "stroke-width": 3}, svg);
+    const dotOut = el("circle", {r: 9, fill: OUT, stroke: "#fff", "stroke-width": 3}, svg);
+    el("rect", {x: X0, y: 500, width: X1 - X0, height: 26, fill: "#2F3640"}, svg);
+    el("rect", {x: tx(6), y: 500, width: tx(18) - tx(6), height: 26, fill: "#FFD95A"}, svg);
+    [[0, "midnight"], [6, "sunrise"], [12, "noon"], [18, "sunset"], [24, "midnight"]].forEach(([h, s]) =>
+      txt(svg, tx(h), 556, s, {"font-size": 17, fill: "#444", "text-anchor": "middle"}));
+    const nowLine = el("line", {y1: 96, y2: 530, stroke: "#C2185B", "stroke-width": 2.5, "stroke-dasharray": "7 6"}, svg);
+    const barStar = el("path", {fill: "#C2185B", stroke: "#fff", "stroke-width": 2}, svg);
+    const cap = el("g", {"font-size": 19, "text-anchor": "middle", fill: "#444", "font-style": "italic"}, svg);
+    txt(cap, 400, 596, "More sunlight in than heat out: it warms up.");
+    txt(cap, 400, 622, "More heat out than sunlight in: it cools down.");
+    return function update(t, o) {
+      const hide = o.path === "hide", whole = o.path === "whole", end = whole ? 24 : t;
+      [ghostIn, ghostOut].forEach((e) => e.style.display = o.path === "trace" ? "" : "none");
+      [cIn, cOut, fills, labIn, labOut].forEach((e) => e.style.display = hide ? "none" : "");
+      cIn.setAttribute("d", line(SUN_IN, 0, end)); cOut.setAttribute("d", line(MODEL.out, 0, end));
+      coolA.setAttribute("d", gap(0, Math.min(end, tMin)));
+      warmF.setAttribute("d", gap(tMin, Math.min(end, tMax)));
+      coolB.setAttribute("d", gap(tMax, end));
+      labWarm.style.display = !hide && end >= 13.8 ? "" : "none";
+      labCool.style.display = !hide && end >= 22.6 ? "" : "none";
+      marks[0].style.display = !hide && end >= tMin + 0.3 ? "" : "none";
+      marks[1].style.display = !hide && end >= tMax + 0.3 ? "" : "none";
+      const a = SUN_IN(t), b = MODEL.out(t), d = a - b;
+      dotIn.setAttribute("cx", tx(t)); dotIn.setAttribute("cy", ey(a));
+      dotOut.setAttribute("cx", tx(t)); dotOut.setAttribute("cy", ey(b));
+      bracket.setAttribute("x1", tx(t)); bracket.setAttribute("x2", tx(t)); bracket.setAttribute("y1", ey(a)); bracket.setAttribute("y2", ey(b));
+      bracket.setAttribute("stroke", d > 0 ? "#E08A2E" : "#5B8DB8");
+      [dotIn, dotOut, bracket].forEach((e) => e.style.display = hide ? "none" : "");
+      now.textContent = Math.abs(d) < 0.012 ? "Right now: in = out, so the temperature holds steady"
+        : a === 0 ? "Right now: no sunlight in, but heat still goes out: cooling"
+        : d > 0 ? "Right now: more sunlight in than heat out: warming"
+        : "Right now: more heat out than sunlight in: cooling";
+      now.setAttribute("fill", Math.abs(d) < 0.012 ? "#C2185B" : d > 0 ? "#B5651D" : "#3E6D96");
+      nowLine.setAttribute("x1", tx(t)); nowLine.setAttribute("x2", tx(t)); nowLine.setAttribute("y1", hide ? 490 : 96);
+      barStar.setAttribute("d", starPath(tx(t), 513, 16, 6.5));
+      cap.style.display = o.captions ? "" : "none";
+    };
+  }
+
+  // ---------- one clock, many panes ----------
+  const cfg = { sunRight: new URLSearchParams(location.search).get("sun") === "right" };
+  let panes = [];
+  function buildPanes() {
+    ["paneRot", "paneSide", "paneGraph", "paneEnergy", "paneFlat", "pane3d"].forEach((id) => $(id).replaceChildren());
+    panes = [makeRotationPane($("paneRot"), cfg), makeSidePane($("paneSide"), cfg), makeGraphPane($("paneGraph")),
+             makeEnergyPane($("paneEnergy")), makeFlatPane($("paneFlat")), make3DPane($("pane3d"), cfg)];
+  }
+  buildPanes();
+  const params = new URLSearchParams(location.search);
+  const has = (k) => params.has(k);
+  let t = has("t") ? Math.min(24, Math.max(0, parseFloat(params.get("t")) || 0)) : 0;
+  let playing = false, speed = 1.2, skipNight = false;
+  const opts = { path: params.get("path") || "trace", captions: params.get("captions") !== "off", direct: params.get("direct") === "on" };
+  // Which views start on: ?views=rot,side,graph,energy,flat,3d (default: Earth from space + temperature)
+  const VIEW_IDS = {rot: "paneRot", side: "paneSide", graph: "paneGraph", energy: "paneEnergy", flat: "paneFlat", "3d": "pane3d"};
+  const startViews = (params.get("views") || "rot,graph").split(",").map((k) => VIEW_IDS[k.trim()]).filter(Boolean);
+  Object.values(VIEW_IDS).forEach((id) => $(id).hidden = !startViews.includes(id));
+  if (!startViews.length) $("paneRot").hidden = false;
+  // Grid: 1 view fills the screen, 2 or 3 sit side by side, 4 make a 2 × 2
+  // Temperature + in/out both on: they stack in one column so their time axes line up; the others span both rows
+  function layout() {
+    const shown = [...document.querySelectorAll(".pane")].filter((p) => !p.hidden);
+    const m = document.querySelector("main");
+    document.querySelectorAll(".pane").forEach((p) => { p.style.gridRow = ""; p.style.gridColumn = ""; });
+    if (!$("paneGraph").hidden && !$("paneEnergy").hidden) {
+      const others = shown.filter((p) => p.id !== "paneGraph" && p.id !== "paneEnergy");
+      others.forEach((p, i) => { p.style.gridColumn = String(i + 1); p.style.gridRow = "1 / span 2"; });
+      const c = String(others.length + 1);
+      $("paneGraph").style.gridColumn = c; $("paneGraph").style.gridRow = "1";
+      $("paneEnergy").style.gridColumn = c; $("paneEnergy").style.gridRow = "2";
+      m.style.gridTemplateColumns = `repeat(${others.length + 1}, minmax(0, 1fr))`;
+      m.style.gridTemplateRows = "repeat(2, minmax(0, 1fr))";
+      return;
+    }
+    const n = shown.length;
+    const cols = n === 4 ? 2 : n > 4 ? 3 : n, rows = n >= 4 ? 2 : 1;   // 1–3 in a row, 4 = 2 × 2, 5–6 = 3 + 3
+    m.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    m.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+  }
+  layout();
+
+  const phaseName = (u) =>
+    u < 5.5 ? "night" : u < 6.5 ? "sunrise" : u < 11.5 ? "morning" : u < 12.5 ? "noon" :
+    u < 17.5 ? "afternoon" : u < 18.5 ? "sunset" : u < 23.5 ? "evening" : "midnight";
+
+  function render() {
+    $("sunUp").textContent = (t > SUNRISE && t < SUNSET) ? "YES" : (t === SUNRISE || t === SUNSET) ? "at the edge" : "NO";
+    $("phase").textContent = phaseName(t);
+    $("slider").value = t;
+    panes.forEach((u) => u(t, opts));
+  }
+
+  let last = null;
+  function frame(ts) {
+    if (!playing) { last = null; return; }
+    if (last !== null) {
+      t += speed * (ts - last) / 1000;                    // speed = hours per second
+      if (skipNight && t > SUNSET + 0.6) t = SUNRISE - 0.6; // jump the night: a new day, the path restarts
+      if (t >= 24) t -= 24;
+    }
+    last = ts; render(); requestAnimationFrame(frame);
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("play").textContent = p ? "❚❚ Pause" : "▶ Play";
+    $("play").classList.toggle("on", p);
+    if (p) requestAnimationFrame(frame);
+  }
+
+  $("play").onclick = () => setPlaying(!playing);
+  $("slider").oninput = (e) => { t = parseFloat(e.target.value); render(); };
+  document.querySelectorAll("[data-jump]").forEach((b) => b.onclick = () => { setPlaying(false); t = +b.dataset.jump; render(); });
+  const pick = (attr, cb) => document.querySelectorAll(`[${attr}]`).forEach((b) => b.onclick = () => {
+    document.querySelectorAll(`[${attr}]`).forEach((o) => o.classList.remove("on"));
+    b.classList.add("on"); cb(b.getAttribute(attr)); render();
+  });
+  pick("data-speed", (v) => speed = +v);
+  pick("data-path", (v) => opts.path = v);
+  document.querySelectorAll("[data-path]").forEach((b) => b.classList.toggle("on", b.dataset.path === opts.path));
+  // View toggles: any pane can be switched off, but never the last one showing
+  document.querySelectorAll("[data-pane]").forEach((b) => {
+    b.classList.toggle("on", !$(b.dataset.pane).hidden);
+    b.onclick = () => {
+      const pane = $(b.dataset.pane);
+      const showing = [...document.querySelectorAll(".pane")].filter((p) => !p.hidden).length;
+      if (!pane.hidden && showing === 1) return;
+      pane.hidden = !pane.hidden; b.classList.toggle("on", !pane.hidden); layout();
+    };
+  });
+  $("nightBtn").onclick = () => { skipNight = !skipNight; $("nightBtn").classList.toggle("on", skipNight); };
+  // One switch for every view: the space views and the 3D dome move their camera; "facing south" stays true to the person
+  const sunLabel = () => { $("sunBtn").textContent = cfg.sunRight ? "Sun on the right" : "Sun on the left"; $("sunBtn").classList.toggle("on", cfg.sunRight); };
+  sunLabel();
+  $("sunBtn").onclick = () => { cfg.sunRight = !cfg.sunRight; sunLabel(); buildPanes(); render(); };
+  $("dirBtn").classList.toggle("on", opts.direct);
+  $("dirBtn").onclick = () => {                     // turning it on also shows the 3D view if it's off
+    opts.direct = !opts.direct; $("dirBtn").classList.toggle("on", opts.direct);
+    if (opts.direct && $("pane3d").hidden) { $("pane3d").hidden = false; document.querySelector('[data-pane="pane3d"]').classList.add("on"); layout(); }
+    render(); };
+  $("capBtn").classList.toggle("on", opts.captions);
+  $("capBtn").onclick = () => { opts.captions = !opts.captions; $("capBtn").classList.toggle("on", opts.captions); render(); };
+  $("fsBtn").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " ") { e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === "ArrowRight") { setPlaying(false); t = Math.min(24, Math.floor(t + 1e-6) + 1); render(); }
+    else if (e.key === "ArrowLeft")  { setPlaying(false); t = Math.max(0, Math.ceil(t - 1e-6) - 1); render(); }
+    else if (e.key === "f" || e.key === "F") $("fsBtn").click();
+  });
+
+  const menus = [...document.querySelectorAll("details.menu")];
+  menus.forEach((d) => d.addEventListener("toggle", () => { if (d.open) menus.forEach((o) => { if (o !== d) o.open = false; }); }));
+  document.addEventListener("click", (e) => { if (!e.target.closest("details.menu")) menus.forEach((d) => d.open = false); });
+  document.querySelectorAll("[data-jump], [data-speed], [data-path]").forEach((b) =>
+    b.addEventListener("click", () => b.closest("details").open = false));
+  render();
+  if (params.get("play") === "1") setPlaying(true);
+})();
+</script>
+</body>
+</html>

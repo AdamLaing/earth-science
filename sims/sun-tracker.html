@@ -100,6 +100,7 @@
   function dirLabel(az) { return ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(az / 45) % 8]; }
   function fistText(alt) {
     const k = Math.round(alt / 5) / 2, whole = Math.floor(k), half = k - whole > 0.01;
+    if (k === 0) return "on the horizon";
     const s = (whole ? whole : "") + (half ? "½" : "");
     return "about " + (s || "0") + (k === 1 ? " fist" : " fists");
   }
@@ -111,10 +112,12 @@
 
   // ---------- state ----------
   const params = new URLSearchParams(location.search);
-  const PERIODS = [["P1", 505], ["P2", 560], ["P3", 615], ["P4", 660], ["P5", 760], ["P6", 815]];   // 8:25 9:20 10:15 11:00 12:40 1:35
+  // Jump buttons (Adam, 2026-11-23): 7 roughly equal steps from sunrise to sunset. The ends sit 5 minutes inside the day,
+  // because at exactly 6:00 the Sun is on the horizon (0°) and its light would spread over endless squares.
+  const PERIODS = [["Sunrise", 365], ["", 480], ["", 600], ["", 720], ["", 840], ["", 960], ["Sunset", 1075]];   // 6:05 8 10 12 2 4 5:55
   const parseHM = (s) => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ""); return m ? +m[1] * 60 + +m[2] : null; };
   const now = new Date();
-    let nowMin = now.getHours() * 60 + now.getMinutes(); if (nowMin < 360 || nowMin > 1080) nowMin = 505;
+    let nowMin = now.getHours() * 60 + now.getMinutes(); if (nowMin < 360 || nowMin > 1080) nowMin = 480;
   const st = {
     min: parseHM(params.get("time")) ?? nowMin,
     answers: params.get("answers") !== "off",
@@ -341,7 +344,7 @@
   const per = $("periods");
   PERIODS.forEach(([name, m]) => {
     const b = document.createElement("button");
-    b.className = "per"; b.dataset.min = m; b.textContent = name + " " + clockText(m).replace(/ [AP]M$/, "");
+    b.className = "per"; b.dataset.min = m; b.textContent = name || clockText(m).replace(/ [AP]M$/, "");
     b.addEventListener("click", () => { setPlaying(false); st.min = m; render(); });
     per.appendChild(b); per.appendChild(document.createTextNode(" "));
   });

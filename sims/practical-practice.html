@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>U3 Practical Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --teal: #1F8A9E; --font: Lexend, "Segoe UI", Helvetica, Arial, sans-serif; }
+  html, body { margin: 0; background: #fff; font-family: var(--font); color: #222; }
+  header { padding: 10px 20px 0; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 3px solid var(--teal); }
+  nav button { font-family: var(--font); font-size: 16px; padding: 8px 12px; border: 3px solid var(--teal); border-bottom: none;
+               border-radius: 10px 10px 0 0; background: #fff; color: var(--teal); cursor: pointer; margin-bottom: -3px; }
+  nav button small { display: block; font-size: 12px; color: #555; }
+  nav button.on { background: var(--teal); color: #fff; }
+  nav button.on small { color: #dff; }
+  main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, 1fr); gap: 16px; padding: 12px 20px 20px; align-items: start; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  #pic svg { width: 100%; height: auto; display: block; max-height: calc(100vh - 150px); }
+  #pic { position: relative; }
+  #skylab { position: absolute; inset: 0; z-index: 5; background: #fff; border: 3px solid #E0A800; border-radius: 14px; padding: 10px 16px;
+            overflow: auto; font-size: 17px; }
+  #skylab[hidden] { display: none; }
+  #skylab .head { display: flex; align-items: center; gap: 12px; }
+  #skylab h2 { font-size: 21px; margin: 0; flex: 1; }
+  #skylab .body { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, 1fr); gap: 16px; align-items: start; }
+  #skylab #labSky svg { width: 100%; height: auto; max-height: none; border: 1px solid #ddd; border-radius: 10px; cursor: grab; touch-action: none; }
+  #skylab label { display: block; font-weight: 700; margin: 8px 0 0; }
+  #skylab label span { font-weight: 400; color: #555; }
+  #skylab input[type=range] { width: 100%; accent-color: #E0A800; }
+  /* time slider: gray for night, gold for daylight (set from the latitude and time of year) */
+  #labTime { -webkit-appearance: none; appearance: none; background: transparent; height: 26px; }
+  #labTime::-webkit-slider-runnable-track { height: 12px; border-radius: 6px; background: var(--track, #E0A800); border: 1px solid #bbb; }
+  #labTime::-moz-range-track { height: 12px; border-radius: 6px; background: var(--track, #E0A800); border: 1px solid #bbb; }
+  #labTime::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -7px; border-radius: 50%; background: #fff; border: 4px solid #E0A800; }
+  #labTime::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 4px solid #E0A800; }
+  #labTimeKey { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-top: -2px; }
+  #skylab button { font-family: var(--font); font-size: 15px; padding: 5px 12px; border-radius: 8px; border: 2px solid #444; background: #fff; cursor: pointer; }
+  #labRead { background: #FFF6D6; border-left: 6px solid #E0A800; border-radius: 6px; padding: 8px 12px; margin: 10px 0; }
+  #labSide svg.sideview { max-width: 300px; }
+  svg.sideview { width: 100%; max-width: 320px; height: auto; display: block; max-height: none; }
+  #sky .nycbtn { font-family: var(--font); font-size: 15px; padding: 4px 12px; border-radius: 8px; border: 2px solid #E0A800; background: #fff; color: #7a5c00; cursor: pointer; font-weight: 600; margin: 4px 0 12px; }
+  svg text { font-family: var(--font); }
+  #picbar { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #555; }
+  #draghint[hidden], #reset[hidden] { display: none; }
+  #reset { font-family: var(--font); font-size: 15px; padding: 4px 12px; border: 2px solid #444; border-radius: 8px; background: #fff; cursor: pointer; }
+  #picinfo { color: #999; font-size: 12px; margin-left: auto; }
+  #compassBtn { font-family: var(--font); font-size: 15px; padding: 4px 12px; border: 2px solid #d7263d; border-radius: 8px; background: #fff; color: #d7263d; cursor: pointer; font-weight: 600; }
+  #compassBtn.on { background: #d7263d; color: #fff; }
+  #compassBtn[hidden], #landBtn[hidden] { display: none; }
+  #landBtn { font-family: var(--font); font-size: 15px; padding: 4px 12px; border: 2px solid #5f8a3a; border-radius: 8px; background: #fff; color: #4d7a2a; cursor: pointer; font-weight: 600; }
+  #landBtn.on { background: #5f8a3a; color: #fff; }
+  #svg.turn { cursor: grab; touch-action: none; }
+  #svg.turn:active { cursor: grabbing; }
+  #panel { font-size: 20px; line-height: 1.45; }
+  #intro { background: #EAF5F7; border-radius: 12px; padding: 10px 14px; font-size: 17px; margin: 0 0 12px; }
+  #qcount { color: var(--teal); font-weight: 600; font-size: 16px; }
+  #qtext { font-size: 22px; margin: 4px 0 12px; }
+  #choices { display: flex; flex-wrap: wrap; gap: 10px; }
+  #choices.scale { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #choices.grid8 { display: grid; grid-template-columns: repeat(3, 104px); grid-template-rows: repeat(3, 58px); gap: 8px; }
+  #choices.grid8 button { min-width: 0; padding: 2px; }
+  #choices.grid8 button.mid { font-size: 14px; line-height: 1.15; }
+  #choices.times { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  #choices.times button { font-size: 16px; min-width: 0; padding: 6px 4px; line-height: 1.2; }
+  #choices.times button small { font-size: 13px; }
+  #choices button.sel { border-color: var(--teal); background: #DDF1F4; box-shadow: inset 0 0 0 2px var(--teal); }
+  #check { font-family: var(--font); font-size: 18px; font-weight: 700; padding: 8px 16px; margin-top: 10px; border-radius: 12px;
+           border: 3px solid var(--teal); background: #fff; color: var(--teal); cursor: pointer; }
+  #check:disabled { opacity: 0.4; cursor: default; }
+  #check[hidden] { display: none; }
+  body.touring #check { display: none; }
+  /* while an answer's sky diagram is showing, clear away what isn't needed (Adam, 2026-11-25) */
+  body.answering #introRow, body.answering #qcount, body.answering #score, body.answering #tourBtn { display: none; }
+  #choices button { font-family: var(--font); font-size: 22px; font-weight: 700; min-width: 64px; min-height: 52px; padding: 6px 14px;
+                    border: 3px solid #444; border-radius: 12px; background: #fff; color: #222; cursor: pointer; }
+  #choices button small { display: block; font-size: 14px; font-weight: 400; color: #555; }
+  #choices button:hover:not(:disabled) { background: #f2f2f2; }
+  #choices button.wrong { border-color: #c0392b; background: #fdecea; color: #c0392b; text-decoration: line-through; }
+  #choices button.right { border-color: #1e8449; background: #1e8449; color: #fff; }
+  #choices button.right small { color: #e8f8ee; }
+  #choices button:disabled { cursor: default; }
+  #feedback { min-height: 30px; margin: 14px 0 8px; font-size: 19px; }
+  #feedback.try { color: #a04000; }
+  #feedback.done { background: #f4f9f5; border-left: 6px solid #1e8449; padding: 8px 12px; border-radius: 6px; }
+  #feedback.done.missed { background: #fdf6ec; border-left-color: #e67e22; }
+  #sky svg { width: 100%; max-width: 380px; display: block; border-radius: 10px; border: 1px solid #ddd; cursor: grab; touch-action: none; }
+  #sky .skyhint { font-size: 14px; color: #555; margin: 4px 0 12px; }
+  #next { font-family: var(--font); font-size: 20px; font-weight: 700; padding: 10px 18px; border-radius: 12px;
+          border: 3px solid var(--teal); background: var(--teal); color: #fff; cursor: pointer; }
+  #next[hidden] { display: none; }
+  #score { margin-top: 18px; color: #555; font-size: 16px; }
+  body.clean header, body.clean #panel, body.clean #picbar { display: none; }
+  body.clean main { display: block; padding: 0; }
+  body.clean #pic svg { max-height: none; }
+  #tourBtn { font-family: var(--font); font-size: 16px; font-weight: 600; padding: 6px 14px; margin: 0 0 10px; border: 2px solid var(--teal);
+             border-radius: 10px; background: #fff; color: var(--teal); cursor: pointer; }
+  #tourBtn[hidden], #tour[hidden] { display: none; }
+  #tour { border: 3px solid var(--teal); border-radius: 14px; padding: 12px 16px; background: #fff; font-size: 18px; line-height: 1.45; }
+  #tourCount { color: var(--teal); font-weight: 600; font-size: 15px; }
+  #tourTitle { font-size: 22px; margin: 2px 0 6px; }
+  #tourText { margin: 0 0 10px; }
+  #tourAsk { background: #FFF6D6; border-left: 6px solid #E0A800; border-radius: 6px; padding: 8px 12px; margin: 0 0 6px; font-weight: 600; }
+  #tourAsk:empty { display: none; }
+  #tourCtl { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
+  #tourCtl[hidden] { display: none; }
+  #tourPlay { font-family: var(--font); font-size: 17px; font-weight: 700; padding: 6px 14px; border-radius: 10px; border: 3px solid #7B3FA0;
+              background: #7B3FA0; color: #fff; cursor: pointer; min-width: 112px; }
+  #tourTime { flex: 1; accent-color: #7B3FA0; }
+  #tourMsg { min-height: 26px; font-size: 17px; margin: 0 0 8px; }
+  #tourMsg.ok { color: #1e8449; font-weight: 700; }
+  #tourMsg.no { color: #a04000; }
+  #tourBtns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #tourBtns button { font-family: var(--font); font-size: 18px; font-weight: 700; padding: 8px 16px; border-radius: 10px; cursor: pointer;
+                     border: 3px solid var(--teal); background: var(--teal); color: #fff; }
+  #tourBtns button:disabled { opacity: 0.35; cursor: default; }
+  #tourBtns #tourBack { background: #fff; color: var(--teal); }
+  #tourBtns #tourSkip { margin-left: auto; background: none; border: none; color: #666; font-size: 15px; font-weight: 400; text-decoration: underline; padding: 4px; }
+  body.touring #intro, body.touring #qcount, body.touring #qtext, body.touring #choices, body.touring #feedback,
+  body.touring #sky, body.touring #next, body.touring #score, body.touring #tourBtn { display: none; }
+  .sayrow { display: flex; gap: 10px; align-items: flex-start; }
+  .sayrow > :first-child { flex: 1; min-width: 0; }
+  .say { flex: none; width: 40px; height: 40px; margin-top: 2px; border: 2px solid var(--teal); border-radius: 50%; background: #fff;
+         color: var(--teal); cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+  .say svg { width: 22px; height: 22px; }
+  .say.on { background: var(--teal); color: #fff; }
+  .say[hidden], body.nospeech .say { display: none; }
+  body.touring #sayIntro, body.touring #sayQ, body.touring #sayFb { display: none; }
+  #key { font-size: 15px; padding: 0 20px 20px; }
+  pre#st { font-size: 13px; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>U3 Practical Practice</h1>
+  <nav id="tabs"></nav>
+</header>
+<main>
+  <section id="pic"><svg id="svg" viewBox="0 0 900 580" role="img" aria-label="Practice picture"></svg>
+    <div id="skylab" hidden>
+      <div class="head"><h2>The Sun's height in New York City <span style="font-weight:400;font-size:16px;color:#555">(spring or fall equinox)</span></h2><button id="labClose">✕ Close</button></div>
+      <div class="body">
+        <div><div id="labSky"></div><div class="skyhint">Drag the sky to turn it. The small Suns mark 6, 8, 10, 12, 2, 4 and 6 o'clock.</div></div>
+        <div>
+          <label>Time of day: <span id="labTimeV"></span><input type="range" id="labTime" min="0" max="24" step="0.25"></label><div id="labTimeKey"><span>midnight</span><span>noon</span><span>midnight</span></div>
+          <div id="labRead"></div>
+          <div id="labSide"></div>
+        </div>
+      </div>
+    </div>
+    <div id="picbar"><span id="draghint">Drag the globe to turn it.</span> <button id="reset">Reset view</button> <button id="compassBtn">Compasses: on</button> <button id="landBtn">Continents: off</button><span id="picinfo"></span></div></section>
+  <section id="panel">
+    <button id="tourBtn" hidden>How to read this picture</button>
+    <div id="tour" hidden>
+      <div id="tourCount"></div>
+      <div class="sayrow"><div id="tourTitle"></div><button class="say" id="sayTour"></button></div>
+      <p id="tourText"></p>
+      <p id="tourAsk"></p>
+      <div id="tourCtl" hidden><button id="tourPlay">▶ Play</button><input type="range" id="tourTime" min="0" max="24" step="0.1" value="0" aria-label="Hours passed"></div>
+      <div id="tourMsg"></div>
+      <div id="tourBtns"><button id="tourBack">← Back</button><button id="tourNext">Next →</button><button id="tourSkip">Skip the tour</button></div>
+    </div>
+    <div class="sayrow" id="introRow"><p id="intro"></p><button class="say" id="sayIntro"></button></div>
+    <div id="qcount"></div>
+    <div class="sayrow"><div id="qtext"></div><button class="say" id="sayQ"></button></div>
+    <div id="choices"></div>
+    <button id="check" hidden disabled>Check my answer</button>
+    <div class="sayrow"><div id="feedback"></div><button class="say" id="sayFb" hidden></button></div>
+    <div id="sky"></div>
+    <button id="next" hidden>Next question →</button>
+    <div id="score"></div>
+  </section>
+</main>
+<div id="key"></div>
+
+<script>
+(function () {
+"use strict";
+const rad = Math.PI / 180, W = 900, H = 580, SVGNS = "http://www.w3.org/2000/svg";
+
+// ---------- random numbers (seeded, so a picture can be shown again) ----------
+let rng = Math.random;
+function mulberry32(a) { const f = mulberry32raw(a); for (let i = 0; i < 4; i++) f(); return f; }   // warm up: nearby seeds start too alike
+function mulberry32raw(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = (a, b) => a + (b - a) * rng();
+const pick = arr => arr[Math.floor(rng() * arr.length)];
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const mod = (x, m) => ((x % m) + m) % m;
+
+// ---------- geometry ----------
+// World frame: X points at the Sun, Z is north, Y is east at the point under the Sun.
+// A city's "al" is its angle east of the noon line, so its clock time is 12 + al/15 hours.
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+function pos(lat, al) { const p = lat * rad, a = al * rad; return [Math.cos(p) * Math.cos(a), Math.cos(p) * Math.sin(a), Math.sin(p)]; }
+function northV(lat, al) { const p = lat * rad, a = al * rad; return [-Math.sin(p) * Math.cos(a), -Math.sin(p) * Math.sin(a), Math.cos(p)]; }
+function eastV(lat, al) { const a = al * rad; return [-Math.sin(a), Math.cos(a), 0]; }
+function norm2(v) { const m = Math.hypot(v[0], v[1]); return m ? [v[0] / m, v[1] / m] : [0, 0]; }
+function ang2(a, b) { a = norm2(a); b = norm2(b); return Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1]))) / rad; }
+const sinAlt = c => Math.cos(c.lat * rad) * Math.cos(c.al * rad);      // equinox: how high the Sun is
+
+// Camera: azimuth a (degrees from the Sun direction, toward east) and elevation e (90 = above the North Pole).
+// a > 0 puts the Sun on the left of the picture, a < 0 on the right.
+function makeCam(aDeg, eDeg) {
+  const a = aDeg * rad, e = eDeg * rad;
+  const C = [Math.cos(e) * Math.cos(a), Math.cos(e) * Math.sin(a), Math.sin(e)];
+  const U = [-Math.sin(e) * Math.cos(a), -Math.sin(e) * Math.sin(a), Math.cos(e)];
+  return { C, U, R: cross(U, C), a: aDeg, e: eDeg };
+}
+function mkScene(cam, hasSun, opts) {
+  opts = opts || {};
+  const R = opts.R || 215, cy = 290;
+  const sunLeft = opts.sunLeft !== undefined ? opts.sunLeft : cam.R[0] < 0;   // which side the layout was built for
+  const cx = opts.cx !== undefined ? opts.cx : (!hasSun ? 450 : (sunLeft ? 370 : 530));
+  const P = v => ({ x: cx + R * dot(v, cam.R), y: cy - R * dot(v, cam.U), z: dot(v, cam.C) });
+  const D = v => [dot(v, cam.R), -dot(v, cam.U)];
+  const lon0 = rnd(0, 30);   // always drawn, so seeded pictures stay the same
+  const sv = D([1, 0, 0]);
+  return { cam, hasSun, R, cx, cy, P, D, s2: norm2(sv), sunSide: Math.hypot(sv[0], sv[1]), sunLeft, lon0: opts.lon0 !== undefined ? opts.lon0 : lon0 };
+}
+function rescene(sc, a, e) { return mkScene(makeCam(a, e), sc.hasSun, { R: sc.R, cx: sc.cx, lon0: sc.lon0, sunLeft: sc.sunLeft }); }
+const ARM_PX = 38;
+function cityG(sc, c, armPx) {
+  const q = sc.P(pos(c.lat, c.al)), deg = (armPx || ARM_PX) / sc.R / rad;
+  const g = Object.assign(q, { n2: sc.D(northV(c.lat, c.al)), e2: sc.D(eastV(c.lat, c.al)), arm: {}, dir: {}, lab: {} });
+  for (const k of ["N", "S", "E", "W"]) {
+    const pts = [];
+    for (let i = 0; i <= 8; i++) {
+      const f = deg * i / 8; let lat = c.lat, al = c.al;
+      if (k === "N") lat += f; else if (k === "S") lat -= f;
+      else al += (k === "E" ? 1 : -1) * f / Math.cos(c.lat * rad);
+      pts.push(sc.P(pos(lat, al)));
+    }
+    const end = pts[8], prev = pts[7], t = norm2([end.x - prev.x, end.y - prev.y]);
+    g.arm[k] = pts; g.dir[k] = norm2([end.x - q.x, end.y - q.y]);
+    g.lab[k] = [end.x + t[0] * 13, end.y + t[1] * 13 + 6];
+  }
+  return g;
+}
+function compassOK(g) {
+  if (g.z < 0.2) return false;
+  for (const k in g.arm) { const e = g.arm[k][8]; if (e.z < 0.05 || Math.hypot(e.x - g.x, e.y - g.y) < 14) return false; }
+  const nl = Math.hypot(g.n2[0], g.n2[1]), el = Math.hypot(g.e2[0], g.e2[1]);
+  if (nl < 0.3 || el < 0.3) return false;
+  const a = ang2(g.n2, g.e2); return a > 50 && a < 130;
+}
+function armsOf(g) { return g.dir; }   // the direction each drawn arm heads off in
+function spotPath(c, upto) {   // internal check only (not drawn): points on the globe from city c toward where the Sun is overhead
+  const p = pos(c.lat, c.al), X = [1, 0, 0], O = Math.acos(Math.max(-1, Math.min(1, p[0])));
+  if (O < 1e-6) return [p];
+  const n = 40, end = upto === undefined ? O : Math.min(O, upto), out = [];
+  for (let i = 0; i <= n; i++) { const t = end * i / n, a = Math.sin(O - t) / Math.sin(O), b = Math.sin(t) / Math.sin(O);
+    out.push([a * p[0] + b * X[0], a * p[1] + b * X[1], a * p[2] + b * X[2]]); }
+  return out;
+}
+// The four arms plus the four gaps between them (NE = halfway between the N and E arms, and so on).
+function arms8(g) { const d = g.dir, b = (p, q) => norm2([d[p][0] + d[q][0], d[p][1] + d[q][1]]);
+  return { N: d.N, NE: b("N", "E"), E: d.E, SE: b("S", "E"), S: d.S, SW: b("S", "W"), W: d.W, NW: b("N", "W") }; }
+// For a Sun-direction question, the surface line from the city toward the overhead-Sun point has to leave along the right arm (or gap) in the
+// picture, by a clear margin. The line is drawn on the surface, like the arms, so this holds from any camera angle.
+function sunArmOK(sc, g, want, c) {
+  const pts = spotPath(c, ARM_PX / sc.R), q = sc.P(pts[pts.length - 1]), v = [q.x - g.x, q.y - g.y];
+  const d = Object.entries(arms8(g)).map(([k, a]) => [k, ang2(a, v)]).sort((x, y) => x[1] - y[1]);
+  return d[0][0] === want && d[1][1] - d[0][1] >= 10;
+}
+function spacedOK(gs, minD) {
+  for (let i = 0; i < gs.length; i++) for (let j = i + 1; j < gs.length; j++)
+    if (Math.hypot(gs[i].x - gs[j].x, gs[i].y - gs[j].y) < minD) return false;
+  return true;
+}
+const inView = (x, y, m) => x > m && x < W - m && y > m && y < H - m;
+
+// ---------- time of day ----------
+const CATS = ["sunrise", "morning", "noon", "afternoon", "sunset", "night"];
+const SCALE = [["Sunrise", "5–7 AM"], ["Morning", "7–11 AM"], ["Around noon", "11 AM–1 PM"], ["Afternoon", "1–5 PM"], ["Sunset", "5–7 PM"], ["Night", "7 PM–5 AM"]];
+const HOURS = { sunrise: [6, 6], morning: [9, 10.33], noon: [11.75, 12.25], afternoon: [13.67, 15], sunset: [18, 18], night: [21, 27] };
+const catAl = cat => (rnd(HOURS[cat][0], HOURS[cat][1]) - 12) * 15;
+const CAT_PHRASE = { sunrise: "at sunrise", morning: "in the morning", noon: "around noon", afternoon: "in the afternoon", sunset: "at sunset", night: "in the night" };
+const DIR8 = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const DIR_WORD = { N: "north", NE: "northeast", E: "east", SE: "southeast", S: "south", SW: "southwest", W: "west", NW: "northwest" };
+// The Sun's compass direction from a city at the equinox (same formula as the Sun Tracker), or null if it isn't clearly one of the 8.
+function sunDir8(c) {
+  const H = c.al * rad, az = mod(Math.atan2(-Math.sin(H), -Math.sin(c.lat * rad) * Math.cos(H)) / rad, 360);
+  const k = Math.round(az / 45) % 8;
+  return Math.abs(mod(az - k * 45 + 180, 360) - 180) <= 12 ? DIR8[k] : null;
+}
+function timeReason(cat, L) {
+  return {
+    sunrise: `City ${L} is right on the edge between night and day, and Earth's spin is carrying it <i>into</i> the day. That's sunrise.`,
+    sunset: `City ${L} is right on the edge between day and night, and Earth's spin is carrying it <i>into</i> the night. That's sunset.`,
+    noon: `City ${L} is in the middle of the day side, facing the Sun most directly. That's around noon.`,
+    morning: `City ${L} is in daylight, but it hasn't reached the middle of the day side yet. Earth's spin is carrying it toward noon, so it's morning.`,
+    afternoon: `City ${L} is in daylight and has already passed the middle of the day side. Earth's spin is carrying it toward sunset, so it's afternoon.`,
+    night: `City ${L} is on the dark side, away from the Sun. It's night.`
+  }[cat];
+}
+const TIME_HINT = "Follow the spin arrow. Is the city coming into the day, in the middle of the day, heading into the night, or in the dark?";
+function sunDirReason(cat, dir, L, compass) {
+  if (cat === "night") return `City ${L} is on the night side, so the Sun is not out.`;
+  const when = { sunrise: "At sunrise the Sun is due east.", noon: "Around noon the Sun is due south (for cities north of the equator).", sunset: "At sunset the Sun is due west.",
+    morning: `In the morning the Sun is in the eastern part of the sky, and (north of the equator) it's also toward the south: <b>${DIR_WORD[dir]}</b>.`,
+    afternoon: `In the afternoon the Sun is in the western part of the sky, and (north of the equator) it's also toward the south: <b>${DIR_WORD[dir]}</b>.` }[cat];
+  if (!compass) return when;
+  const where = dir.length === 1 ? `its <b>${dir}</b> arm` : `the gap between its <b>${dir[0]}</b> and <b>${dir[1]}</b> arms`;
+  return `${when} On city ${L}'s compass, that's ${where}.`;
+}
+const sunHint = (c, compass) => c.cat === "night" ? `Is city ${c.letter} on the day side or the night side?`
+  : compass ? `Find city ${c.letter}'s compass. Which arm, or which gap between two arms, points toward the Sun?`
+  : `First work out the time of day in city ${c.letter}. Where is the Sun at that time of day?`;
+const DIR_CHOICES = DIR8.map(d => [d]).concat([["The Sun is not out"]]);
+const sunAns = c => c.cat === "night" ? 8 : DIR8.indexOf(sunDir8(c));
+function sunQ(c, compass, extra) {
+  return { text: `From ${bold(c.letter)}, which direction is the Sun?`, choices: DIR_CHOICES, grid: true, answer: sunAns(c),
+    hint: sunHint(c, compass), reason: sunDirReason(c.cat, sunDir8(c), c.letter, compass) + (extra || ""), focus: c };
+}
+
+// ---------- drawing ----------
+function el(tag, attrs, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function text(parent, x, y, s, attrs) { const t = el("text", Object.assign({ x, y }, attrs || {}), parent); t.textContent = s; return t; }
+let COMPASS_ON = true;   // the "Compasses" button: on = a compass on every city you can see, off = none (Adam, 2026-11-24)
+const HALO = { "paint-order": "stroke", stroke: "#fff", "stroke-width": 5, "stroke-linejoin": "round" };
+function curve(pts) { let d = "", pen = false;
+  for (const p of pts) { if (p.z >= -0.001) { d += (pen ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1); pen = true; } else pen = false; }
+  return d; }
+function latPts(sc, lat, a0, a1) { const out = []; a0 = a0 === undefined ? 0 : a0; a1 = a1 === undefined ? 360 : a1;
+  const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / 2)); for (let i = 0; i <= n; i++) out.push(sc.P(pos(lat, a0 + (a1 - a0) * i / n))); return out; }
+function lonPts(sc, al, l0, l1) { const out = []; l0 = l0 === undefined ? -90 : l0; l1 = l1 === undefined ? 90 : l1;
+  const n = Math.max(2, Math.ceil(Math.abs(l1 - l0) / 2)); for (let i = 0; i <= n; i++) out.push(sc.P(pos(l0 + (l1 - l0) * i / n, al))); return out; }
+
+function defs(svg) {
+  const d = el("defs", {}, svg);
+  const mk = (id, col, size) => el("marker", { id, viewBox: "0 0 10 10", refX: 7, refY: 5, markerWidth: size, markerHeight: size, orient: "auto-start-reverse" }, d)
+    .appendChild(el("path", { d: "M0,0 L10,5 L0,10 z", fill: col }));
+  mk("ahSun", "#E07B10", 4); mk("ahN", "#d7263d", 4.5); mk("ahSpin", "#7B3FA0", 4);
+}
+
+// The night side: the visible half of the day/night circle, closed along the globe's edge on the dark side.
+function nightPath(sc) {
+  const { cam, cx, cy, R } = sc, pts = [];
+  const tau = Math.atan2(cam.C[2], cam.C[1]);
+  for (let i = 0; i <= 90; i++) { const t = tau - Math.PI / 2 + Math.PI * i / 90; const p = sc.P([0, Math.cos(t), Math.sin(t)]); pts.push([p.x, p.y]); }
+  const ang = q => Math.atan2(-(q[1] - cy), q[0] - cx);
+  const b1 = ang(pts[0]), b2 = ang(pts[pts.length - 1]);
+  let delta = mod(b1 - b2, 2 * Math.PI), dir = 1;
+  const mid = b2 + delta / 2;
+  if (Math.cos(mid) * cam.R[0] + Math.sin(mid) * cam.U[0] > 0) { dir = -1; delta = 2 * Math.PI - delta; }
+  for (let i = 1; i <= 72; i++) { const b = b2 + dir * delta * i / 72; pts.push([cx + R * Math.cos(b), cy - R * Math.sin(b)]); }
+  return "M" + pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join("L") + "Z";
+}
+
+function drawSun(svg, sc) {
+  const { cx, cy, R, s2 } = sc;
+  if (sc.sunSide < 0.3) {     // looking almost along the sunlight
+    const front = sc.cam.C[0] > 0;
+    text(svg, W / 2, 30, front ? "The Sun is behind you, shining onto this side of Earth" : "The Sun is behind Earth, shining on the far side",
+      Object.assign({ "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: "#9a7400" }, HALO));
+    return;
+  }
+  // The Sun is huge and far away: draw it as a giant disk mostly off the edge of the picture, so only a slice shows
+  // along the side the light comes from (Adam, 2026-11-24: a small icon read as "the Sun is over there, by the spot").
+  const tx = s2[0] > 1e-6 ? (W - cx) / s2[0] : s2[0] < -1e-6 ? -cx / s2[0] : Infinity;
+  const ty = s2[1] > 1e-6 ? (H - cy) / s2[1] : s2[1] < -1e-6 ? -cy / s2[1] : Infinity;
+  const tB = Math.min(tx, ty) - 48, Rs = 1600;
+  const ex = cx + s2[0] * tB, ey = cy + s2[1] * tB, scx = ex + s2[0] * Rs, scy = ey + s2[1] * Rs;
+  const g = el("g", {}, svg);
+  el("circle", { cx: scx, cy: scy, r: Rs + 16, fill: "#FFD23F", "fill-opacity": 0.3 }, g);
+  el("circle", { cx: scx, cy: scy, r: Rs, fill: "#FFD23F", stroke: "#E0A800", "stroke-width": 4 }, g);
+  const vert = Math.abs(s2[0]) > Math.abs(s2[1]);   // slice runs up and down the side, or across the top/bottom
+  const lx = Math.max(24, Math.min(W - 24, ex + s2[0] * 26)), ly = Math.max(24, Math.min(H - 24, ey + s2[1] * 26));   // keep the label on screen
+  text(g, lx, ly + 7, "Sun", { "text-anchor": "middle", "font-size": 20, "font-weight": 700, fill: "#8a6400",
+    transform: vert ? `rotate(${s2[0] > 0 ? 90 : -90} ${lx} ${ly})` : "" });
+}
+// Parallel sunlight: one arrow lands where the Sun is straight overhead, and one lands north, east, south and west of that (Adam, 2026-11-24).
+function sunArrows(svg, sc) {
+  const { cx, cy, R } = sc, d = 35 * rad, c = Math.cos(d), s = Math.sin(d);
+  for (const p of [[1, 0, 0], [c, 0, s], [c, s, 0], [c, 0, -s], [c, -s, 0]]) {
+    const end = sc.P(p);
+    if (end.z < -0.01) continue;                       // on the far side of the globe
+    const st = sc.P([p[0] + 0.75, p[1], p[2]]);
+    let sx = st.x, sy = st.y;
+    const dx = sx - end.x, dy = sy - end.y, len = Math.hypot(dx, dy);
+    if (len < 25) continue;                            // looking almost straight down the beam
+    if (len > 70) { sx = end.x + dx / len * 70; sy = end.y + dy / len * 70; }   // short: light landing here
+    else if (Math.hypot(sx - cx, sy - cy) > R + 62) {       // start just outside the globe, like the kit's sunlight arrows
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; (Math.hypot(end.x + dx * m - cx, end.y + dy * m - cy) > R + 62 ? hi = m : lo = m); }
+      sx = end.x + dx * lo; sy = end.y + dy * lo;
+    }
+    const back = 6;
+    const ex = end.x + dx / len * back, ey = end.y + dy / len * back;
+    el("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: "#fff", "stroke-width": 7, "stroke-opacity": 0.7 }, svg);
+    el("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: "#F28C28", "stroke-width": 4, "marker-end": "url(#ahSun)" }, svg);
+  }
+}
+// How direct the sunlight is: a warm glow, strongest where the Sun is straight overhead, fading to the night edge.
+let shadeMemo = { key: "", url: "" };   // the glow only depends on the camera, so reuse it (the spin animation redraws often)
+function shadeImage(sc) {
+  const key = sc.cam.C.map(v => v.toFixed(5)).join() + "," + sc.cam.U.map(v => v.toFixed(5)).join() + "," + sc.R;
+  if (shadeMemo.key === key) return shadeMemo.url;
+  shadeMemo = { key, url: shadeImage0(sc) }; return shadeMemo.url;
+}
+function shadeImage0(sc) {
+  const { cam, R } = sc, n = Math.round(2 * R), cv = document.createElement("canvas"); cv.width = cv.height = n;
+  const ctx = cv.getContext("2d"), img = ctx.createImageData(n, n), d = img.data;
+  for (let j = 0; j < n; j++) { const y = 1 - 2 * (j + 0.5) / n;
+    for (let i = 0; i < n; i++) { const x = 2 * (i + 0.5) / n - 1, r2 = x * x + y * y; if (r2 >= 1) continue;
+      const z = Math.sqrt(1 - r2), s = x * cam.R[0] + y * cam.U[0] + z * cam.C[0];
+      if (s <= 0) continue;
+      const k = (j * n + i) * 4; d[k] = 255; d[k + 1] = 196; d[k + 2] = 50; d[k + 3] = Math.round(255 * 0.8 * s * s * s); } }
+  ctx.putImageData(img, 0, 0); return cv.toDataURL();
+}
+function beamTo(svg, sc, g) {   // one beam of sunlight to one city, parallel to all the others
+  const { cx, cy, R, s2 } = sc;
+  const t = R + 62 - ((g.x - cx) * s2[0] + (g.y - cy) * s2[1]);
+  const sx = g.x + s2[0] * t, sy = g.y + s2[1] * t, ex = g.x + s2[0] * 12, ey = g.y + s2[1] * 12;
+  el("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: "#fff", "stroke-width": 8, "stroke-opacity": 0.8 }, svg);
+  el("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: "#F28C28", "stroke-width": 4, "marker-end": "url(#ahSun)" }, svg);
+}
+function spinGeom(sc, lat) {
+  const az = Math.atan2(sc.cam.C[1], sc.cam.C[0]) / rad;
+  const pts = latPts(sc, lat, az - 80, az + 80).filter(p => p.z > 0.02);
+  const m = sc.P(pos(lat - 9, az)), o = sc.P(pos(lat, az));
+  const v = norm2([m.x - o.x, m.y - o.y]);
+  return { pts, label: [m.x + v[0] * 14, m.y + v[1] * 14 + 6] };
+}
+function spinArrow(svg, sc, lat) {
+  const { pts, label } = spinGeom(sc, lat);
+  if (pts.length < 4) return;
+  el("path", { d: curve(pts), fill: "none", stroke: "#fff", "stroke-width": 8 }, svg);
+  el("path", { d: curve(pts), fill: "none", stroke: "#7B3FA0", "stroke-width": 4, "marker-end": "url(#ahSpin)" }, svg);   // kit rotation purple
+  text(svg, label[0], label[1], "Earth spins this way", Object.assign({ "text-anchor": "middle", "font-size": 15, "font-weight": 600, fill: "#7B3FA0" }, HALO));
+}
+// Cities must stay clear of the North Pole label and of the spin arrow and its label.
+function clearOK(sc, gs, spinLat) {
+  const np = sc.P([0, 0, 1]);
+  for (const g of gs) {
+    if (np.z > 0.05 && Math.abs(g.x - np.x) < 75 && g.y - np.y > -45 && g.y - np.y < 30) return false;
+    if (spinLat === undefined) continue;
+    const { pts, label } = spinGeom(sc, spinLat);
+    if (Math.abs(g.x - label[0]) < 105 && Math.abs(g.y - label[1] + 5) < 32) return false;
+    if (pts.some(p => Math.hypot(p.x - g.x, p.y - g.y) < 40)) return false;
+  }
+  return true;
+}
+function drawCompass(svg, g) {
+  const grp = el("g", {}, svg);
+  for (const k of ["S", "E", "W", "N"]) {
+    const d = curve(g.arm[k].map(p => ({ x: p.x, y: p.y, z: 1 })));
+    el("path", { d, fill: "none", stroke: "#fff", "stroke-width": 8, "stroke-linecap": "round" }, grp);
+    el("path", Object.assign({ d, fill: "none", stroke: k === "N" ? "#d7263d" : "#222", "stroke-width": k === "N" ? 4 : 3, "stroke-linecap": "round" },
+      k === "N" ? { "marker-end": "url(#ahN)" } : {}), grp);
+    text(grp, g.lab[k][0], g.lab[k][1], k, Object.assign({ "text-anchor": "middle", "font-size": Math.hypot(g.arm[k][8].x - g.x, g.arm[k][8].y - g.y) > 26 ? 19 : 15, "font-weight": 700, fill: k === "N" ? "#d7263d" : "#222" }, HALO));
+  }
+}
+function bubbleAt(sc, g, withCompass, L) {
+  let off;
+  if (withCompass) { const A = armsOf(g); off = norm2([A.S[0] + A.W[0], A.S[1] + A.W[1]]); off = [off[0] * (L + 14), off[1] * (L + 14)]; }
+  else if (sc.hasSun) { off = norm2([-sc.s2[0], -sc.s2[1] - 0.9]); off = [off[0] * 26, off[1] * 26]; }
+  else off = [20, -20];
+  return [g.x + off[0], g.y + off[1]];
+}
+// Nothing drawn for one city (its letter, its compass letters) may sit on another city's dot or letter.
+function marksOK(sc, cs, gs, L) {
+  L = L || 32;
+  const marks = cs.map((c, i) => {
+    const g = gs[i], pts = [bubbleAt(sc, g, c.compass, L)];
+    if (c.compass) for (const k in g.lab) pts.push([g.lab[k][0], g.lab[k][1] - 6]);
+    return { dot: [g.x, g.y], pts };
+  });
+  for (let i = 0; i < marks.length; i++) for (let j = 0; j < marks.length; j++) {
+    if (i === j) continue;
+    for (const p of marks[i].pts) {
+      if (Math.hypot(p[0] - marks[j].dot[0], p[1] - marks[j].dot[1]) < 26) return false;
+      if (Math.hypot(p[0] - marks[j].pts[0][0], p[1] - marks[j].pts[0][1]) < 32) return false;
+    }
+  }
+  return true;
+}
+// A city on the far side: no dot or compass, just a small arrowhead at the edge pointing toward it,
+// and its letter in a dashed circle, so students know to turn the globe (Adam, 2026-11-24).
+function drawBehind(svg, sc, g, letter) {
+  const { cx, cy, R } = sc;
+  let v = [g.x - cx, g.y - cy]; v = Math.hypot(v[0], v[1]) < 4 ? [0, -1] : norm2(v);
+  const pp = [-v[1], v[0]], at = k => [cx + v[0] * (R + k), cy + v[1] * (R + k)];
+  const b = at(6), tip = at(22);
+  el("polygon", { points: [[tip[0], tip[1]], [b[0] + pp[0] * 9, b[1] + pp[1] * 9], [b[0] - pp[0] * 9, b[1] - pp[1] * 9]].map(q => q.map(n => n.toFixed(1)).join(",")).join(" "),
+    fill: "#d7263d", "fill-opacity": 0.75, stroke: "#fff", "stroke-width": 2 }, svg);
+  let [bx, by] = at(42); bx = Math.max(18, Math.min(W - 18, bx)); by = Math.max(18, Math.min(H - 18, by));
+  el("circle", { cx: bx, cy: by, r: 14, fill: "#fff", stroke: "#666", "stroke-width": 2, "stroke-dasharray": "4 3" }, svg);
+  text(svg, bx, by + 6, letter, { "text-anchor": "middle", "font-size": 17, "font-weight": 700, fill: "#666" });
+}
+function drawCity(svg, sc, g, letter, withCompass, L) {
+  L = L || 32;
+  if (withCompass) drawCompass(svg, g);
+  el("circle", { cx: g.x, cy: g.y, r: 7, fill: "#d7263d", stroke: "#fff", "stroke-width": 2.5 }, svg);
+  const [bx, by] = bubbleAt(sc, g, withCompass, L);
+  el("circle", { cx: bx, cy: by, r: 15, fill: "#fff", stroke: "#222", "stroke-width": 2.5 }, svg);
+  text(svg, bx, by + 7, letter, { "text-anchor": "middle", "font-size": 20, "font-weight": 700, fill: "#222" });
+}
+
+// With compasses on, shrink a city's compass when another city is close, so they don't overlap.
+function cityGs(sc, pic) {
+  const front = g => g.z > 0.02, gs = pic.cities.map(c => cityG(sc, c));
+  const gd = gs.map((g, i) => {
+    if (!COMPASS_ON || !front(g)) return g;
+    let near = Infinity; gs.forEach((h, j) => { if (j !== i && front(h)) near = Math.min(near, Math.hypot(g.x - h.x, g.y - h.y)); });
+    return cityG(sc, pic.cities[i], Math.max(18, Math.min(ARM_PX, near * 0.36)));
+  });
+  return { gs, gd };
+}
+// ---------- continents (the "Continents" button; Adam, 2026-11-24) ----------
+// Coastlines from Natural Earth 1:110m land (public domain), simplified to whole degrees; small islands left out.
+// Each picture turns the map by its own amount (picture number x 137.5 degrees), so cities land on varied places.
+// Shapes are clipped where they go over the edge of the globe, and the cut follows the globe's outline.
+let LAND_ON = false;
+const LAND = "-60,-80 -60,-81 -66,-81 -60,-80|-45,-78 -43,-80 -50,-81 -54,-80 -49,-78 -45,-78|-68,-71 -69,-72 -71,-73 -75,-72 -74,-71 -72,-71 -72,-70 -70,-69 -68,-71|-59,-64 -62,-65 -62,-66 -66,-68 -62,-71 -61,-74 -71,-77 -77,-77 -74,-78 -78,-78 -78,-79 -58,-83 -29,-80 -30,-79 -36,-79 -35,-78 -18,-75 -16,-74 -16,-74 -15,-73 -7,-71 0,-72 8,-70 11,-71 13,-70 27,-70 34,-69 39,-70 55,-66 61,-68 69,-68 70,-69 68,-70 69,-71 68,-72 70,-72 74,-70 88,-66 90,-67 100,-67 103,-66 106,-67 114,-66 117,-67 133,-66 135,-65 137,-67 145,-67 149,-68 171,-71 171,-72 169,-74 164,-76 165,-78 167,-79 162,-79 160,-81 169,-84 180,-85 180,-90 -180,-90 -180,-85 -179,-84 -170,-84 -158,-85 -143,-85 -154,-84 -153,-82 -157,-81 -146,-80 -155,-79 -158,-78 -158,-77 -151,-77 -146,-76 -146,-75 -145,-75 -114,-74 -112,-75 -101,-75 -104,-73 -75,-74 -67,-72 -69,-70 -68,-67 -63,-65 -58,-63 -59,-64|-68,-54 -65,-55 -68,-56 -73,-54 -75,-53 -71,-54 -69,-53 -68,-54|145,-41 148,-41 148,-43 146,-44 145,-41 145,-41|173,-41 174,-41 173,-44 168,-47 167,-46 167,-45 173,-41|175,-36 177,-38 179,-38 175,-41 174,-40 175,-37 173,-35 175,-36|50,-14 50,-16 47,-25 44,-25 43,-21 44,-16 48,-15 49,-12 50,-14|144,-14 145,-15 146,-19 149,-20 153,-26 153,-32 149,-38 146,-39 145,-38 144,-39 141,-38 138,-36 138,-34 137,-35 138,-33 136,-35 134,-33 131,-31 117,-35 115,-34 116,-32 115,-29 113,-26 114,-26 113,-24 114,-22 114,-23 121,-20 126,-14 130,-15 131,-13 133,-12 132,-11 136,-12 136,-15 140,-18 142,-11 144,-14|109,-7 111,-6 116,-8 111,-8 105,-7 106,-6 109,-7|134,-1 135,-3 138,-2 145,-4 151,-10 148,-10 145,-8 143,-9 138,-8 139,-7 138,-5 134,-4 133,-4 132,-3 134,-2 131,-1 134,-1|125,1 124,0 120,0 121,-1 123,-1 122,-2 123,-5 121,-5 121,-3 120,-6 119,-5 119,-3 120,1 125,1|106,-6 103,-4 95,5 97,5 104,0 103,-1 106,-3 106,-6|118,2 119,1 118,1 116,-4 115,-4 110,-3 109,0 110,2 110,2 117,7 119,5 117,3 118,2|126,8 125,6 124,8 123,7 122,7 122,8 125,9 125,10 126,8|81,6 80,7 80,10 81,9 82,8 81,6|121,19 123,17 122,14 124,14 124,13 123,13 120,15 121,19|-73,20 -68,19 -71,18 -74,18 -72,19 -73,20 -73,20|-80,23 -74,20 -78,20 -77,20 -79,22 -82,23 -85,22 -82,23 -80,23|141,37 140,35 136,33 135,35 131,34 132,33 131,31 129,33 133,35 136,36 137,37 139,38 140,41 141,41 142,40 141,37|144,44 145,44 146,43 140,42 142,46 144,44|-56,51 -57,50 -53,49 -53,47 -54,48 -55,47 -59,48 -57,51 -56,52 -56,51|144,51 145,49 143,49 143,48 144,46 142,46 142,50 142,54 144,51|-7,52 -10,52 -10,54 -8,55 -6,55 -7,52|-3,59 -4,58 -2,58 -3,56 2,53 1,51 -6,50 -3,51 -5,52 -3,54 -6,55 -6,57 -5,59 -3,59|-85,66 -80,64 -83,64 -87,64 -85,66|-15,66 -14,65 -19,63 -23,64 -22,64 -24,65 -22,65 -24,66 -24,66 -15,66|-175,67 -170,66 -173,65 -173,64 -176,65 -179,66 -180,65 -180,69 -175,67|-91,69 -91,68 -89,69 -87,67 -86,70 -83,70 -81,69 -81,68 -86,67 -87,65 -93,62 -95,59 -93,59 -92,57 -82,55 -82,53 -80,51 -79,53 -80,55 -77,57 -79,59 -77,60 -78,62 -74,62 -70,61 -69,59 -68,58 -65,60 -62,56 -57,55 -56,52 -60,50 -66,50 -71,47 -65,49 -64,49 -65,48 -64,46 -62,46 -61,47 -60,46 -65,44 -66,44 -64,45 -67,45 -71,43 -70,42 -74,41 -72,41 -74,41 -75,39 -76,39 -76,37 -76,39 -77,38 -76,36 -81,31 -80,25 -84,30 -89,30 -90,29 -94,30 -97,28 -98,22 -96,19 -94,18 -92,19 -90,21 -87,22 -89,16 -83,15 -84,11 -81,9 -80,10 -77,9 -75,11 -72,12 -72,9 -70,12 -68,11 -62,11 -62,10 -57,6 -54,6 -51,4 -50,2 -50,0 -45,-2 -45,-3 -40,-3 -36,-5 -35,-7 -39,-13 -41,-22 -48,-25 -49,-29 -54,-34 -56,-35 -58,-34 -57,-37 -59,-39 -62,-39 -63,-41 -65,-41 -63,-43 -67,-46 -68,-46 -66,-47 -69,-51 -68,-52 -71,-54 -75,-52 -76,-49 -74,-47 -76,-47 -74,-44 -73,-44 -73,-42 -74,-43 -74,-37 -71,-32 -70,-20 -71,-17 -76,-15 -80,-7 -81,-6 -80,-3 -81,-2 -81,-1 -77,4 -78,8 -80,9 -81,7 -86,10 -87,13 -104,18 -105,20 -106,23 -114,32 -115,32 -115,30 -109,23 -110,23 -112,25 -112,26 -115,28 -114,29 -117,33 -121,35 -124,40 -125,48 -123,47 -123,49 -127,51 -128,52 -134,58 -147,61 -152,59 -151,61 -158,56 -165,54 -158,58 -157,59 -162,59 -162,60 -166,62 -165,63 -161,64 -162,64 -161,65 -165,64 -168,66 -162,66 -167,68 -157,71 -137,69 -128,70 -109,67 -108,68 -109,68 -108,69 -106,69 -101,68 -98,69 -96,68 -96,67 -94,69 -96,70 -95,72 -91,69|-114,73 -110,73 -108,72 -108,73 -105,73 -104,71 -101,70 -103,70 -102,69 -107,69 -116,69 -117,70 -112,70 -118,71 -116,71 -119,72 -114,73|-87,73 -86,73 -82,74 -81,72 -78,73 -72,72 -68,70 -67,69 -69,69 -62,67 -64,65 -68,66 -65,63 -65,63 -69,64 -66,62 -75,65 -79,65 -74,65 -73,68 -79,70 -89,70 -90,72 -88,74 -86,74 -87,73|-100,74 -97,73 -98,73 -97,73 -97,72 -98,71 -102,73 -100,73 -102,73 -100,74|-93,73 -95,72 -95,74 -91,74 -93,73|-120,71 -123,71 -126,72 -124,74 -125,74 -122,74 -116,73 -120,71|145,76 139,75 137,75 139,76 145,76|-98,77 -98,75 -101,76 -103,76 -98,77|-108,76 -106,76 -106,75 -116,75 -118,75 -115,76 -109,75 -110,76 -108,76|58,71 54,71 51,72 56,75 61,76 69,77 58,74 55,72 58,71|-95,77 -89,76 -81,76 -80,75 -80,75 -92,75 -94,76 -97,77 -95,77|-116,78 -117,77 -123,76 -116,78|107,77 114,76 109,74 123,73 123,74 127,74 131,71 132,72 140,71 139,72 140,73 159,71 161,69 168,70 170,69 171,69 170,70 179,69 180,69 180,65 177,65 179,63 174,62 170,60 164,60 162,58 163,58 162,55 157,51 156,57 164,61 164,63 160,61 159,62 157,61 154,60 155,59 142,59 135,55 140,54 141,52 138,46 135,43 132,43 128,40 129,37 129,35 126,34 126,37 127,37 125,38 125,40 121,39 122,41 118,39 119,37 122,37 119,35 122,32 122,28 116,23 111,21 110,20 109,22 106,20 109,13 109,12 105,9 105,10 100,13 99,9 103,6 104,1 101,3 100,6 98,8 99,11 97,17 94,16 94,18 91,23 87,21 86,20 80,16 80,10 78,8 74,16 73,21 70,21 66,25 57,26 56,27 55,26 52,28 50,30 48,30 51,25 52,26 52,24 54,24 56,26 57,24 60,22 55,17 43,13 43,17 35,28 35,30 34,28 32,30 37,22 37,19 43,12 43,12 45,10 51,12 51,9 47,3 40,-3 39,-6 41,-15 35,-20 35,-24 33,-26 32,-29 28,-33 20,-35 18,-34 14,-22 12,-17 14,-11 12,-5 9,-1 9,4 9,5 6,4 4,6 -2,5 -9,5 -17,12 -18,15 -16,18 -17,22 -14,26 -10,30 -9,33 -6,36 -2,35 1,37 10,37 11,37 10,34 19,30 22,33 29,31 34,31 36,37 28,37 26,39 34,42 38,41 42,42 37,45 39,47 35,46 36,45 34,44 32,45 33,46 31,47 28,43 29,41 23,40 24,38 23,38 22,36 19,40 20,42 13,46 13,44 18,40 17,40 16,38 15,40 9,44 3,43 3,42 1,41 0,39 -2,37 -5,36 -9,37 -9,43 -1,44 -1,46 -5,49 -2,49 -2,50 1,50 5,53 8,54 9,57 11,58 11,56 10,55 11,54 20,54 21,55 22,57 24,57 24,58 23,59 29,60 23,60 21,61 22,63 25,65 22,66 18,63 17,61 19,60 17,59 16,56 13,55 10,59 8,58 6,59 5,62 15,68 25,71 28,71 31,70 30,70 31,70 40,68 41,67 40,66 33,67 35,66 35,64 37,64 37,65 40,65 42,66 44,66 45,67 43,69 46,68 47,68 46,67 46,67 54,69 60,68 61,69 61,70 69,68 69,69 67,69 67,71 69,73 73,73 72,71 74,68 71,66 72,66 75,68 74,70 74,71 73,71 75,73 76,71 76,72 78,72 82,72 81,74 87,74 86,74 87,75 101,76 104,78 107,77|105,78 99,78 102,79 105,78|18,80 22,79 19,79 17,77 13,78 10,80 18,80|25,80 27,80 26,80 18,80 25,80|100,79 91,80 96,81 100,80 100,79|-87,80 -86,79 -91,78 -96,80 -97,80 -95,81 -92,81 -87,80|-68,83 -62,82 -77,79 -75,79 -80,77 -78,77 -89,76 -88,77 -88,78 -85,78 -88,78 -85,79 -87,80 -82,80 -88,81 -92,82 -68,83|-27,84 -21,83 -31,82 -12,81 -20,80 -18,80 -20,79 -18,77 -22,77 -20,76 -20,75 -21,75 -19,74 -24,73 -22,72 -25,72 -22,71 -26,71 -26,70 -22,70 -40,65 -43,63 -43,60 -46,61 -49,61 -54,66 -54,67 -51,70 -55,70 -54,71 -51,71 -56,72 -55,73 -57,75 -61,76 -69,76 -71,77 -67,77 -73,78 -66,79 -68,80 -60,82 -45,82 -47,83 -43,83 -27,84";
+let LAND_V = null;   // built the first time continents are drawn
+const landRings = () => LAND_V || (LAND_V = LAND.split("|").map(r => {   // unit vectors, with no gap wider than 2 degrees so edges stay on the sphere
+  const pts = r.split(" ").map(q => q.split(",").map(Number)).map(([lo, la]) => pos(la, lo)), out = [];
+  pts.forEach((a, i) => { const b = pts[(i + 1) % pts.length], n = Math.ceil(Math.acos(Math.max(-1, Math.min(1, dot(a, b)))) / rad / 2);
+    for (let k = 0; k < n; k++) out.push(norm3([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n, a[2] + (b[2] - a[2]) * k / n])); });
+  return out;
+}));
+function drawLand(svg, sc, shift) {
+  const c = Math.cos(shift * rad), s = Math.sin(shift * rad), C = sc.cam.C;
+  const limbAng = v => Math.atan2(-dot(v, sc.cam.U), dot(v, sc.cam.R));
+  const limbPt = a => [sc.cx + sc.R * Math.cos(a), sc.cy + sc.R * Math.sin(a)];
+  const arc = (a0, a1, out) => { let d = a1 - a0; d = ((d + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;   // the short way round
+    const n = Math.ceil(Math.abs(d) / (3 * rad)); for (let k = 1; k < n; k++) out.push(limbPt(a0 + d * k / n)); };
+  let d = "";
+  for (const ring of landRings()) {
+    const vs = ring.map(v => [v[0] * c - v[1] * s, v[0] * s + v[1] * c, v[2]]), out = [];
+    let lastExit = null, firstEntry = null, firstIdx = -1;
+    for (let i = 0; i < vs.length; i++) {
+      const a = vs[i], b = vs[(i + 1) % vs.length], za = dot(a, C), zb = dot(b, C);
+      if (za >= 0) { const q = sc.P(a); out.push([q.x, q.y]); }
+      if ((za >= 0) !== (zb >= 0)) {   // this edge crosses the edge of the globe
+        const t = za / (za - zb), m = norm3([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]), ang = limbAng(m);
+        if (za >= 0) { out.push(limbPt(ang)); lastExit = ang; }
+        else { if (lastExit !== null) arc(lastExit, ang, out); else if (firstEntry === null) { firstEntry = ang; firstIdx = out.length; }
+          out.push(limbPt(ang)); lastExit = null; }
+      }
+    }
+    if (!out.length) continue;
+    if (lastExit !== null && firstEntry !== null) arc(lastExit, firstEntry, out);   // close the last cut back to the first
+    d += "M" + out.map(q => q[0].toFixed(1) + "," + q[1].toFixed(1)).join("L") + "Z";
+  }
+  if (d) el("path", { d, fill: "#cfe0b0", stroke: "#93b06c", "stroke-width": 1.2, "stroke-linejoin": "round" }, svg);
+}
+// sc + picture: { cities: [{lat, al, letter, compass, beam}], latLine, lonLine, paths: [[i, j, "lat"|"lon"]], spin, arrows, insets, compassL }
+function drawGlobe(svg, sc, pic) {
+  defs(svg);
+  const { cx, cy, R } = sc;
+  if (sc.hasSun) drawSun(svg, sc);
+  el("circle", { cx, cy, r: R, fill: "#d9ecf8" }, svg);
+  if (LAND_ON) drawLand(svg, sc, pic.landShift || 0);
+  if (sc.hasSun) el("image", { href: shadeImage(sc), x: cx - R, y: cy - R, width: 2 * R, height: 2 * R }, svg);
+  const grat = el("g", { fill: "none", stroke: "#6f97b8", "stroke-width": 1.2, "stroke-opacity": 0.5 }, svg);
+  for (const lat of [-60, -40, -20, 20, 40, 60, 80]) el("path", { d: curve(latPts(sc, lat)) }, grat);
+  for (let k = 0; k < 12; k++) el("path", { d: curve(lonPts(sc, sc.lon0 + 30 * k, -80, 80)) }, grat);
+  el("path", { d: curve(latPts(sc, 0)), fill: "none", stroke: "#2f5f8a", "stroke-width": 2.5, "stroke-dasharray": "10 7" }, svg);
+  if (pic.latLine !== undefined) el("path", { d: curve(latPts(sc, pic.latLine)), fill: "none", stroke: "#1F3B57", "stroke-width": 4 }, svg);
+  if (pic.lonLine !== undefined) el("path", { d: curve(lonPts(sc, pic.lonLine)), fill: "none", stroke: "#1F3B57", "stroke-width": 4 }, svg);
+  for (const [i, j, kind] of (pic.paths || [])) {
+    const a = pic.cities[i], b = pic.cities[j];
+    const pts = kind === "lat" ? latPts(sc, a.lat, a.al, b.al) : kind === "lon" ? lonPts(sc, a.al, a.lat, b.lat)
+      : latPts(sc, a.lat, a.al, b.al).concat(lonPts(sc, b.al, a.lat, b.lat));   // diagonal: along the latitude line, then up or down the longitude line
+    el("path", { d: curve(pts), fill: "none", stroke: "#555", "stroke-width": 2.5, "stroke-dasharray": "3 6", "stroke-linecap": "round" }, svg);
+  }
+  if (sc.hasSun) el("path", { d: nightPath(sc), fill: "#1d2a44", "fill-opacity": 0.5 }, svg);
+  el("circle", { cx, cy, r: R, fill: "none", stroke: "#2f5f8a", "stroke-width": 3 }, svg);
+  // equator label, at the lowest visible point of the equator
+  const eqs = latPts(sc, 0).filter(p => p.z >= -0.001).sort((p, q) => q.y - p.y);
+  if (eqs.length) text(svg, eqs[0].x, eqs[0].y - 10, "equator", Object.assign({ "text-anchor": "middle", "font-size": 15, fill: "#2f5f8a", "font-weight": 600 }, HALO));
+  const np = sc.P([0, 0, 1]);
+  if (np.z > 0.05) {
+    el("circle", { cx: np.x, cy: np.y, r: 6, fill: "#222" }, svg);
+    text(svg, np.x, np.y - 13, "North Pole", Object.assign({ "text-anchor": "middle", "font-size": 16, "font-weight": 700, fill: "#222" }, HALO));
+  }
+  if (pic.spin) spinArrow(svg, sc, pic.spinLat === undefined ? 66 : pic.spinLat);
+  const { gs, gd } = cityGs(sc, pic);
+  if (sc.hasSun && pic.arrows) sunArrows(svg, sc);
+  const front = g => g.z > 0.02;
+  const shown = (c) => !pic.focus || c === pic.focus;   // after the answer, only the city the question was about
+  if (sc.sunSide >= 0.45) pic.cities.forEach((c, i) => { if (c.beam && front(gs[i]) && shown(c)) beamTo(svg, sc, gs[i]); });   // skip when looking along the sunlight
+  pic.cities.forEach((c, i) => { if (!shown(c)) return; front(gs[i]) ? drawCity(svg, sc, gd[i], c.letter, COMPASS_ON, pic.compassL) : drawBehind(svg, sc, gs[i], c.letter); });
+  if (pic.insets) drawInsets(svg, sc, pic.cities, pic.order);
+}
+
+// Small grid at each city: the same beam lands on more squares when it comes in at a lower angle.
+function drawInsets(svg, sc, cities, order) {
+  const rank = c => order ? order.indexOf(c.letter) : c.letter.charCodeAt(0);
+  const x0 = sc.sunLeft ? 640 : 20, list = cities.slice().sort((a, b) => rank(a) - rank(b));
+  text(svg, x0 + 120, 34, "The grid at each city", { "text-anchor": "middle", "font-size": 17, "font-weight": 700, fill: "#222" });
+  list.forEach((c, i) => {
+    const y = 50 + i * 128, cell = 16, gx = x0 + 62, gy = y + 18;
+    el("rect", { x: x0, y, width: 240, height: 116, rx: 10, fill: "#fff", stroke: "#bbb", "stroke-width": 2 }, svg);
+    el("circle", { cx: x0 + 30, cy: y + 58, r: 15, fill: "#fff", stroke: "#222", "stroke-width": 2.5 }, svg);
+    text(svg, x0 + 30, y + 65, c.letter, { "text-anchor": "middle", "font-size": 20, "font-weight": 700 });
+    for (let r = 0; r < 5; r++) for (let k = 0; k < 10; k++)
+      el("rect", { x: gx + k * cell, y: gy + r * cell, width: cell, height: cell, fill: "#fff", stroke: "#9ab", "stroke-width": 1 }, svg);
+    if (sinAlt(c) <= 0.005) { text(svg, gx + 5 * cell, gy + 2.5 * cell + 6, "no sunlight", Object.assign({ "text-anchor": "middle", "font-size": 16, "font-weight": 600, fill: "#556" }, HALO)); return; }   // only during the tutorial's spin
+    const s = Math.max(0.2, sinAlt(c));
+    el("ellipse", { cx: gx + 5 * cell, cy: gy + 2.5 * cell, rx: Math.min(5 * cell, cell / s), ry: cell, fill: "#F28C28", "fill-opacity": (0.22 + 0.7 * s).toFixed(2), stroke: "#C46A12", "stroke-width": 2 }, svg);
+  });
+}
+
+// Two flashlights on one sheet of grid paper: from above (the traced patches) and from the side (the angles).
+// focus (optional): the flashlight a finished NYC question was about. Then only that flashlight shows, and the freed
+// space holds NYC's sky and NYC's sunlight from the side, drawn like the flashlight, to compare (Adam, 2026-11-25).
+function drawFlash(svg, angles, focus) {
+  defs(svg);
+  const one = focus ? focus - 1 : null;
+  if (one === null) {
+  // New York City's sky in the corner: tap it to open the sky explorer (Adam, 2026-11-25)
+    { const g = el("g", { id: "nycThumb", style: "cursor:pointer", role: "button", "aria-label": "Open New York City's sky" }, svg);
+    el("rect", { x: 34, y: 462, width: 404, height: 114, rx: 12, fill: "#FFFBEA", stroke: "#E0A800", "stroke-width": 2.5 }, g);
+    const mini = el("svg", { x: 38, y: 466, width: 160, height: 108, viewBox: "0 0 440 300" }, g);
+    paintSky(mini, { lat: 40.7, al: -30 }, { basis: camBasis(0, 24), title: "", sub: "", label: "", marks: [6, 8, 10, 12, 14, 16, 18], decl: 0 });
+    text(g, 208, 504, "New York City's sky", { "font-size": 19, "font-weight": 700, fill: "#222" });
+    text(g, 208, 530, "Tap to see how high the", { "font-size": 15, fill: "#555" });
+    text(g, 208, 550, "Sun is at different times", { "font-size": 15, fill: "#555" });
+    g.addEventListener("click", () => openSkyLab({ hour: 10 })); }
+  }
+  text(svg, 236, 40, "Looking down at the grid paper", { "text-anchor": "middle", "font-size": 19, "font-weight": 700 });
+  const gx = 40, gy = 62, cell = 28, cols = 14, rows = one === null ? 14 : 7;
+  for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++)
+    el("rect", { x: gx + k * cell, y: gy + r * cell, width: cell, height: cell, fill: "#fff", stroke: "#9ab", "stroke-width": 1 }, svg);
+  el("rect", { x: gx, y: gy, width: cols * cell, height: rows * cell, fill: "none", stroke: "#567", "stroke-width": 2 }, svg);
+  (one === null ? [0, 1] : [one]).forEach((i, slot) => {
+    const a = angles[i], s = Math.sin(a * rad), ycen = gy + (one === null ? (i === 0 ? 3.5 : 10.5) : 3.5) * cell, xcen = gx + 7.6 * cell;
+    el("ellipse", { cx: xcen, cy: ycen, rx: cell / s, ry: cell, fill: "#F28C28", "fill-opacity": (0.22 + 0.7 * s).toFixed(2), stroke: "#C46A12", "stroke-width": 3, "stroke-dasharray": "7 4" }, svg);
+    el("circle", { cx: gx + 1.1 * cell, cy: ycen, r: 17, fill: "#fff", stroke: "#222", "stroke-width": 2.5 }, svg);
+    text(svg, gx + 1.1 * cell, ycen + 7, String(i + 1), { "text-anchor": "middle", "font-size": 21, "font-weight": 700 });
+    flashSide(svg, a, i, slot === 0 ? 20 : 305);
+  });
+  if (one !== null) {   // NYC's sky under the grid, and NYC's sunlight from the side under the flashlight
+    const A = nycSun(angles[one]);
+    const mini = el("svg", { x: 24, y: 268, width: 420, height: 286, viewBox: "0 0 440 300" }, svg);
+    paintSky(mini, { lat: 40.7, al: (A.hour - 12) * 15 }, { basis: camBasis(0, 24), decl: 0, marks: [6, 8, 10, 12, 14, 16, 18], twin: A.twin,
+      title: "New York City's sky", sub: A.sub, label: "NYC" });
+    el("rect", { x: 24, y: 268, width: 420, height: 286, rx: 10, fill: "none", stroke: "#ddd", "stroke-width": 1.5 }, svg);
+    sunSide(svg, A.deg, 305, A.caption, A.when);
+  }
+}
+function flashSide(svg, a, i, top) {   // one flashlight seen from the side
+  const s = Math.sin(a * rad);
+  const paperY = top + 232, Px = 770, w = 20, Lb = 112;
+  text(svg, 675, top + 22, `Flashlight ${i + 1}, from the side`, { "text-anchor": "middle", "font-size": 18, "font-weight": 700 });
+  const d = [Math.cos(a * rad), Math.sin(a * rad)], perp = [-d[1], d[0]];
+  const lx = Px - d[0] * Lb, ly = paperY - d[1] * Lb, hw = w / s;
+  el("polygon", { points: [[lx + perp[0] * w, ly + perp[1] * w], [lx - perp[0] * w, ly - perp[1] * w], [Px + hw, paperY], [Px - hw, paperY]].map(p => p.map(v => v.toFixed(1)).join(",")).join(" "),
+    fill: "#FFD27A", "fill-opacity": 0.75 }, svg);
+  el("line", { x1: 480, y1: paperY, x2: 880, y2: paperY, stroke: "#567", "stroke-width": 5 }, svg);
+  for (let x = 480; x <= 880; x += 20) el("line", { x1: x, y1: paperY, x2: x, y2: paperY + 8, stroke: "#567", "stroke-width": 1.5 }, svg);
+  el("line", { x1: Px - hw, y1: paperY, x2: Px + hw, y2: paperY, stroke: "#E07B10", "stroke-width": 8 }, svg);
+  text(svg, 500, paperY + 30, "grid paper", { "font-size": 15, fill: "#567" });
+  const fg = el("g", { transform: `translate(${lx.toFixed(1)},${ly.toFixed(1)}) rotate(${a})` }, svg);
+  el("rect", { x: -78, y: -17, width: 64, height: 34, rx: 6, fill: "#555" }, fg);
+  el("polygon", { points: "-16,-17 0,-25 0,25 -16,17", fill: "#888" }, fg);
+  const bx = lx - d[0] * 46 - perp[0] * 46, by = ly - d[1] * 46 - perp[1] * 46;   // beside the flashlight, on the side away from the paper
+  el("circle", { cx: bx, cy: by, r: 16, fill: "#fff", stroke: "#222", "stroke-width": 2.5 }, svg);
+  text(svg, bx, by + 7, String(i + 1), { "text-anchor": "middle", "font-size": 20, "font-weight": 700 });
+  // angle between the paper and the beam
+  const ar = 48, a0 = Math.PI, a1 = Math.PI + a * rad;   // screen angles: left along the paper, then up toward the flashlight
+  const p0 = [Px + ar * Math.cos(a0), paperY + ar * Math.sin(a0)], p1 = [Px - ar * Math.cos(a * rad), paperY - ar * Math.sin(a * rad)];
+  el("path", { d: `M${p0[0]},${p0[1]} A${ar},${ar} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`, fill: "none", stroke: "#222", "stroke-width": 2.5 }, svg);
+  const mid = (a * rad) / 2;
+  text(svg, Px - (ar + 26) * Math.cos(mid), paperY - (ar + 18) * Math.sin(mid) + 6, a + "°", Object.assign({ "text-anchor": "middle", "font-size": 20, "font-weight": 700 }, HALO));
+}
+// NYC's sunlight from the side, drawn like a flashlight side view (same ground line, arc and label), so the two compare directly.
+function sunSide(svg, deg, top, caption, when) {
+  const paperY = top + 232, Px = 770, L = 150, d = [Math.cos(deg * rad), Math.sin(deg * rad)];
+  text(svg, 675, top + 22, caption, { "text-anchor": "middle", "font-size": 18, "font-weight": 700 });
+  if (when) text(svg, 675, top + 44, when, { "text-anchor": "middle", "font-size": 16, "font-weight": 600, fill: "#9a7400" });
+  el("line", { x1: 480, y1: paperY, x2: 880, y2: paperY, stroke: "#7A5230", "stroke-width": 5 }, svg);
+  text(svg, 500, paperY + 30, "the ground in NYC", { "font-size": 15, fill: "#7A5230" });
+  const sx = Px - d[0] * L, sy = paperY - d[1] * L;
+  el("line", { x1: sx, y1: sy, x2: Px - d[0] * 8, y2: paperY - d[1] * 8, stroke: "#F28C28", "stroke-width": 6, "marker-end": "url(#ahSun)" }, svg);
+  el("circle", { cx: sx, cy: sy, r: 18, fill: "#FFD23F", stroke: "#E0A800", "stroke-width": 3 }, svg);
+  const ar = 48, p0 = [Px - ar, paperY], p1 = [Px - ar * d[0], paperY - ar * d[1]], mid = deg * rad / 2;
+  el("path", { d: `M${p0[0]},${p0[1]} A${ar},${ar} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`, fill: "none", stroke: "#222", "stroke-width": 2.5 }, svg);
+  text(svg, Px - (ar + 26) * Math.cos(mid), paperY - (ar + 18) * Math.sin(mid) + 6, Math.round(deg) + "°", Object.assign({ "text-anchor": "middle", "font-size": 20, "font-weight": 700 }, HALO));
+}
+// When NYC's equinox Sun is at a flashlight's angle: twice (morning and afternoon), only at noon (about 49°), or never.
+function nycSun(a) {
+  const top = sunHeight(40.7, 0, 12), never = a > top + 2;   // 50 counts as noon's 49
+  const hour = a < top ? 12 - Math.acos(Math.sin(a * rad) / Math.cos(40.7 * rad)) / rad / 15 : 12, twin = !never && hour < 11.9 ? 24 - hour : undefined;
+  return { a, top, never, hour, twin, deg: a < top ? a : top,
+    sub: twin ? `${clockAt(hour)} and ${clockAt(twin)}` : "Noon",
+    caption: never ? "NYC's highest Sun, from the side" : "NYC's Sun, from the side",
+    when: never ? "at noon: the highest it gets" : twin ? `at ${clockAt(hour)} and ${clockAt(twin)}` : "at noon" };
+}
+
+// The Sun's path seen from one city: a sky dome over a ground circle (kit sky-dome colors), shown with the answer to
+// connect the globe view and the sky view. The dome is seen from the same direction as the globe camera sees the city,
+// with the same "up", so north and the Sun sit the same way in both pictures; dragging either one turns both (Adam, 2026-11-24).
+// The camera is never allowed below 8 degrees over the city's horizon (when the city is near the globe's edge or behind it).
+function skyBasis(c) {
+  const cam = st.prob.view.cur.cam, u = pos(c.lat, c.al), n = northV(c.lat, c.al), e = eastV(c.lat, c.al);
+  const loc = v => [dot(v, e), dot(v, n), dot(v, u)];   // into the city's frame: x = east, y = north, z = up
+  let C = loc(cam.C); const lo = 8 * rad;
+  if (C[2] < Math.sin(lo)) { const h = Math.hypot(C[0], C[1]), H = h > 1e-6 ? [C[0] / h, C[1] / h] : [0, 1];
+    C = [H[0] * Math.cos(lo), H[1] * Math.cos(lo), Math.sin(lo)]; }
+  let U = loc(cam.U); const d = dot(U, C); U = norm3([U[0] - d * C[0], U[1] - d * C[1], U[2] - d * C[2]]);
+  return { C, Uv: U, Rv: cross(U, C) };
+}
+function drawSky(box, c) {
+  let svg = box.querySelector("svg");
+  if (!svg || svg.dataset.city !== c.letter + c.al) {
+    box.innerHTML = "";
+    svg = el("svg", { viewBox: "0 0 440 300", role: "img", "aria-label": "The Sun's path in the sky" }, box);
+    svg.dataset.city = c.letter + c.al;
+    dragTurns(svg, 440);   // dragging the sky turns the globe camera, and the sky follows it
+    const hint = document.createElement("div"); hint.className = "skyhint"; hint.textContent = "Drag the globe or the sky to turn both."; box.appendChild(hint);
+  }
+  paintSky(svg, c);
+}
+// o (all optional): basis (camera; default = match the globe), title, sub, label (the city's letter; "" = none),
+// decl (the Sun's declination in degrees: 0 = equinox), marks (clock hours to mark on the path), angle (draw the Sun's height in degrees)
+function paintSky(svg, c, o) {
+  o = o || {};
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const w = 440, Dc = 3.2;   // perspective: the camera stands Dc dome-radii away
+  // local frame: x = east, y = north, z = up. C points from the dome toward the camera (same as the globe camera's).
+  const { C, Rv, Uv } = o.basis || skyBasis(c);
+  const raw = v => { const r = [v[0] - C[0] * Dc, v[1] - C[1] * Dc, v[2] - C[2] * Dc], d = -dot(r, C);
+    return [dot(r, Rv) / d, -dot(r, Uv) / d]; };
+  // The dome tilts with the globe, so fit it to the box: sample the dome and the compass labels, then scale and center.
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  const grow = v => { const q = raw(v); x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); };
+  for (let al = 0; al <= 90; al += 15) for (let az = 0; az < 360; az += 15) {
+    const k = al ? 1 : 1.14, A = az * rad, L = al * rad; grow([Math.sin(A) * Math.cos(L) * k, Math.cos(A) * Math.cos(L) * k, Math.sin(L)]); }
+  const f = Math.min(390, (w - 50) / (x1 - x0), 236 / (y1 - y0));
+  const cx = w / 2 - f * (x0 + x1) / 2, cy = 168 - f * (y0 + y1) / 2;   // box below the title strip: y 40 to 296
+  const P = v => { const q = raw(v);
+    return { x: cx + f * q[0], y: cy + f * q[1], z: dot(v, C) }; };
+  const azalt = (az, alt) => [Math.sin(az) * Math.cos(alt), Math.cos(az) * Math.cos(alt), Math.sin(alt)];
+  const ring = (alt, n) => { const o = []; for (let i = 0; i <= n; i++) o.push(P(azalt(2 * Math.PI * i / n, alt))); return o; };
+  const lat = (o.decl === undefined ? Math.max(3, c.lat) : c.lat) * rad, dl = (o.decl || 0) * rad, sunV = H => {
+    const v = [-Math.cos(dl) * Math.sin(H), Math.cos(lat) * Math.sin(dl) - Math.sin(lat) * Math.cos(dl) * Math.cos(H),
+      Math.sin(lat) * Math.sin(dl) + Math.cos(lat) * Math.cos(dl) * Math.cos(H)];
+    return [v, Math.asin(Math.max(-1, Math.min(1, v[2])))];
+  };
+  const [nowV, nowAlt] = sunV(c.al * rad), up = nowAlt > -0.01;
+  const pl = pts => pts.map(q => q.x.toFixed(1) + "," + q.y.toFixed(1)).join(" ");
+  el("rect", { x: 0, y: 0, width: w, height: 300, fill: up ? "#ffffff" : "#e8ebf2" }, svg);
+  // dome: drawn as guide arcs (E-overhead-W, N-overhead-S, and rings at 30 and 60 degrees up) over the ground circle
+  const hz = ring(0, 120);
+  el("polygon", { points: pl(hz), fill: "#efe6d8", stroke: "none" }, svg);   // ground
+  const vert = az0 => { const o = []; for (let i = 0; i <= 90; i++) { const t = Math.PI * i / 90; o.push(P([Math.sin(az0) * Math.cos(t), Math.cos(az0) * Math.cos(t), Math.sin(t)])); } return o; };
+  el("polyline", { points: pl(vert(Math.PI / 2)), fill: "none", stroke: "#8fb3cf", "stroke-width": 1.5 }, svg);   // E - overhead - W
+  el("polyline", { points: pl(vert(0)), fill: "none", stroke: "#8fb3cf", "stroke-width": 1.5 }, svg);             // N - overhead - S
+  for (const alt of [30, 60]) el("polyline", { points: pl(ring(alt * rad, 90)), fill: "none", stroke: "#8fb3cf", "stroke-width": 1, "stroke-dasharray": "3 4" }, svg);
+  if (!up) el("rect", { x: 0, y: 0, width: w, height: 300, fill: "#2b3a55", "fill-opacity": 0.12 }, svg);
+  el("polyline", { points: pl(hz), fill: "none", stroke: "#7A5230", "stroke-width": 4 }, svg);
+  // compass points on the ground
+  ["N", "NE", "E", "SE", "S", "SW", "W", "NW"].forEach((k, i) => {
+    const q = P(azalt(i * Math.PI / 4, 0)), o = P([Math.sin(i * Math.PI / 4) * 1.14, Math.cos(i * Math.PI / 4) * 1.14, 0]);
+    el("circle", { cx: q.x, cy: q.y, r: 3, fill: "#7A5230" }, svg);
+    text(svg, o.x, o.y + 6, k, Object.assign({ "text-anchor": "middle", "font-size": k.length > 1 ? 14 : 18, "font-weight": 700, fill: k === "N" ? "#d7263d" : "#5a3d20" }, HALO));
+  });
+  // the Sun's path: a little bolder on the near side of the dome than on the far side
+  const path = []; for (let H = -180; H <= 180; H += 2) { const [v, a] = sunV(H * rad); path.push(Object.assign(P(v), { a })); }
+  const near = [], far = []; path.forEach((q, i) => { if (i && q.a > -0.002 && path[i - 1].a > -0.002) (q.z >= 0 ? near : far).push([path[i - 1], q]); });
+  far.forEach(([p0, p1]) => el("line", { x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y, stroke: "#E0A800", "stroke-width": 3.5, "stroke-opacity": 0.85, "stroke-dasharray": "8 6" }, svg));
+  near.forEach(([p0, p1]) => el("line", { x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y, stroke: "#E0A800", "stroke-width": 4.5, "stroke-dasharray": "10 6" }, svg));
+  // the city in the middle, with a stick figure standing there, facing south (Adam, 2026-11-24)
+  el("circle", { cx, cy, r: 7, fill: "#d7263d", stroke: "#fff", "stroke-width": 2.5 }, svg);
+  { const h = 0.5, fig = (a, b) => { const p0 = P(a), p1 = P(b); el("line", { x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y, stroke: "#222", "stroke-width": 3, "stroke-linecap": "round" }, svg); };
+    fig([-0.08, 0, 0], [0, 0, h * 0.45]); fig([0.08, 0, 0], [0, 0, h * 0.45]);          // legs
+    fig([0, 0, h * 0.45], [0, 0, h * 0.8]);                                             // body
+    fig([-0.12, 0, h * 0.62], [0.12, 0, h * 0.62]);                                     // arms
+    const hd = P([0, 0, h * 0.92]), hd2 = P([0, 0, h * 0.8]);
+    el("circle", { cx: hd.x, cy: hd.y, r: Math.max(5, Math.abs(hd.y - hd2.y)), fill: "#fff", stroke: "#222", "stroke-width": 3 }, svg); }
+  const label = o.label === undefined ? c.letter : o.label;
+  if (label) { const wd = Math.max(26, label.length * 12 + 8);
+    el("rect", { x: cx - 22 - wd / 2, y: cy + 5, width: wd, height: 26, rx: 13, fill: "#fff", stroke: "#222", "stroke-width": 2.5 }, svg);
+    text(svg, cx - 22, cy + 24, label, { "text-anchor": "middle", "font-size": 17, "font-weight": 700 }); }
+  for (const h of o.marks || []) {   // small Suns at chosen clock times (solar time), with the time
+    const [v, a] = sunV((h - 12) * 15 * rad); if (a < 0.003 || Math.abs((h - 12) * 15 - c.al) < 0.5) continue;
+    const q = P(v); el("circle", { cx: q.x, cy: q.y, r: 7, fill: "#FFE58A", stroke: "#E0A800", "stroke-width": 2 }, svg);
+    text(svg, q.x, q.y - 12, `${h % 12 || 12}`, Object.assign({ "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: "#9a7400" }, HALO));
+  }
+  if (o.angle && up && nowAlt > 1 * rad) {   // the Sun's height: an arc from the ground up to the sunlight, with its degrees
+    const az = Math.atan2(nowV[0], nowV[1]), g0 = P([0, 0, 0]), gr = P(azalt(az, 0));
+    el("line", { x1: g0.x, y1: g0.y, x2: gr.x, y2: gr.y, stroke: "#5a3d20", "stroke-width": 2.5, "stroke-dasharray": "6 5" }, svg);
+    const arcPts = []; for (let i = 0; i <= 24; i++) { const v = azalt(az, nowAlt * i / 24); arcPts.push(P([v[0] * 0.42, v[1] * 0.42, v[2] * 0.42])); }
+    el("polyline", { points: pl(arcPts), fill: "none", stroke: "#222", "stroke-width": 3 }, svg);
+    const lv = azalt(az, nowAlt / 2), lq = P([lv[0] * 0.62, lv[1] * 0.62, lv[2] * 0.62]);
+    text(svg, lq.x, lq.y + 7, Math.round(nowAlt / rad) + "°", Object.assign({ "text-anchor": "middle", "font-size": 22, "font-weight": 700, fill: "#222" }, HALO));
+  }
+  if (up) {
+    const q = P(nowV);
+    // sunlight arrow from the Sun to the figure: shows the angle the light comes in at (Adam, 2026-11-24)
+    defs(svg);
+    const t = P([nowV[0] * 0.12, nowV[1] * 0.12, nowV[2] * 0.12 + 0.12]);
+    el("line", { x1: q.x, y1: q.y, x2: t.x, y2: t.y, stroke: "#fff", "stroke-width": 8, "stroke-opacity": 0.8 }, svg);
+    el("line", { x1: q.x, y1: q.y, x2: t.x, y2: t.y, stroke: "#F28C28", "stroke-width": 4.5, "marker-end": "url(#ahSun)" }, svg);
+    el("circle", { cx: q.x, cy: q.y, r: 15, fill: "#FFD23F", stroke: "#E0A800", "stroke-width": 3 }, svg);
+    if (o.twin !== undefined) {   // the same height later in the day
+      const [tv, ta] = sunV((o.twin - 12) * 15 * rad);
+      if (ta > 0) { const q2 = P(tv), t2 = P([tv[0] * 0.12, tv[1] * 0.12, tv[2] * 0.12 + 0.12]);
+        el("line", { x1: q2.x, y1: q2.y, x2: t2.x, y2: t2.y, stroke: "#fff", "stroke-width": 8, "stroke-opacity": 0.8 }, svg);
+        el("line", { x1: q2.x, y1: q2.y, x2: t2.x, y2: t2.y, stroke: "#F28C28", "stroke-width": 4.5, "marker-end": "url(#ahSun)" }, svg);
+        el("circle", { cx: q2.x, cy: q2.y, r: 15, fill: "#FFD23F", stroke: "#E0A800", "stroke-width": 3 }, svg); }
+    }
+  }
+  else text(svg, cx, 60, "The Sun is below the horizon", Object.assign({ "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: "#2b3a55" }, HALO));
+  const title = o.title === undefined ? `The sky from city ${c.letter}` : o.title, sub = o.sub === undefined ? CAT_PHRASE[c.cat].replace(/^./, m => m.toUpperCase()) : o.sub;
+  if (title) text(svg, 8, 22, title, { "font-size": 16, "font-weight": 700, fill: "#333" });
+  if (sub) text(svg, w - 8, 22, sub, { "text-anchor": "end", "font-size": 16, "font-weight": 600, fill: "#9a7400" });
+}
+function camBasis(aDeg, eDeg) {   // a sky camera of its own: a = walk around the dome (0 = north side, looking south), e = how high
+  const A = aDeg * rad, E = eDeg * rad, C = [Math.sin(A) * Math.cos(E), Math.cos(A) * Math.cos(E), Math.sin(E)];
+  const Rv = norm3(cross([0, 0, 1], C)); return { C, Rv, Uv: cross(C, Rv) };
+}
+const norm3 = v => { const m = Math.hypot(v[0], v[1], v[2]); return [v[0] / m, v[1] / m, v[2] / m]; };
+
+// ---------- question helpers ----------
+// order (optional): show the letter buttons in the order the cities appear on the map; otherwise A, B, C…
+function qLetter(text, letters, ans, hint, reason, order) {
+  const ch = (order ? order.filter(l => letters.includes(l)) : letters.slice().sort()).map(l => [l]);
+  return { text, choices: ch, answer: ch.findIndex(c => c[0] === ans), hint, reason };
+}
+const bold = L => `<b>city ${L}</b>`;
+
+// ---------- tab 1: directions between cities ----------
+function genDirections() {
+  const polar = rng() < 0.45;
+  for (let t = 0; t < 8000; t++) {
+    const cam = polar ? makeCam(rnd(0, 360), 90) : makeCam(rnd(0, 360), rnd(15, 60));
+    const sc = mkScene(cam, false, { R: 240 });
+    const az = Math.atan2(cam.C[1], cam.C[0]) / rad;             // put the cities on the face toward the camera
+    // Cities spread out at random (Adam, 2026-11-24). Each new city is due E/W, due N/S, or clearly diagonal from one
+    // already placed, so every question has a clean answer out of the 8 directions.
+    const n = rng() < 0.3 ? 3 : 4;
+    const cs = [{ lat: rnd(10, 62), al: az + rnd(-55, 55), compass: true }], pairs = [];
+    for (let k = 1; k < n; k++) {
+      const ai = Math.floor(rng() * cs.length), A = cs[ai];
+      const r = rng();
+      if (r < 0.25) cs.push({ lat: A.lat + rnd(-1, 1), al: A.al + (rng() < 0.5 ? -1 : 1) * rnd(40, 110), compass: true }), pairs.push([ai, k, "lat"]);
+      else { const d = r < 0.6 ? rnd(25, 45) : rnd(20, 38); let lat = A.lat + (rng() < 0.5 ? -d : d); if (lat < 8 || lat > 68) lat = 2 * A.lat - lat;   // flip to stay on the globe
+        if (r < 0.6) { cs.push({ lat, al: A.al + rnd(-1, 1), compass: true }); pairs.push([ai, k, "lon"]); }
+        else { cs.push({ lat, al: A.al + (rng() < 0.5 ? -1 : 1) * rnd(35, 90), compass: true }); pairs.push([ai, k, "diag"]); } }
+    }
+    if (cs.some(c => c.lat < 8 || c.lat > 68)) continue;
+    if (pairs.some(([i, j]) => !cityDir(cs[i], cs[j]))) continue;
+    const gs = cs.map(c => cityG(sc, c));
+    let spread = 0; gs.forEach(a => gs.forEach(b => spread = Math.max(spread, Math.hypot(a.x - b.x, a.y - b.y))));
+    if (spread < 260) continue;
+    if (!gs.every(compassOK) || !spacedOK(gs, 105) || !gs.every(g => inView(g.x, g.y, 60)) || !clearOK(sc, gs) || !marksOK(sc, cs, gs)) continue;
+    const letters = shuffle(["A", "B", "C", "D"].slice(0, cs.length)); cs.forEach((c, i) => c.letter = letters[i]);
+    const qs = []; let trap = 0;   // n - 1 pairs, so 2 or 3 questions
+    for (const [i0, j0, kind] of shuffle(pairs).slice(0, 3)) {
+      const [i, j] = rng() < 0.5 ? [i0, j0] : [j0, i0];
+      const A = cs[i], B = cs[j];
+      const dir = cityDir(A, B);
+      const v = [gs[j].x - gs[i].x, gs[j].y - gs[i].y];
+      const naive = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"][Math.round(mod(Math.atan2(-v[1], v[0]) / rad, 360) / 45) % 8];
+      const naiveWord = { N: "above", NE: "up and to the right of", E: "to the right of", SE: "down and to the right of",
+        S: "below", SW: "down and to the left of", W: "to the left of", NW: "up and to the left of" }[naive];
+      if (naive !== dir) trap++;
+      const ns = dir.includes("N") ? "N" : dir.includes("S") ? "S" : null, ew = dir.includes("E") ? "E" : dir.includes("W") ? "W" : null;
+      const why = kind === "lat"
+        ? `City ${B.letter} is on the same latitude line as city ${A.letter} (a line that circles the globe east–west). Going from ${A.letter} along that line toward ${B.letter} follows ${A.letter}'s <b>${dir}</b> arm, so ${B.letter} is ${DIR_WORD[dir]} of ${A.letter}.`
+        : kind === "lon"
+        ? `City ${B.letter} is on the same longitude line as city ${A.letter} (a line that runs to the North Pole). ${B.letter} is ${dir === "N" ? "closer to" : "farther from"} the North Pole, so it is ${DIR_WORD[dir]} of ${A.letter}.`
+        : `City ${B.letter} is ${ns === "N" ? "closer to" : "farther from"} the North Pole than city ${A.letter}, so it's to the ${DIR_WORD[ns]}. It's also to the ${DIR_WORD[ew]}: going around the globe from ${A.letter} toward ${B.letter} follows ${A.letter}'s <b>${ew}</b> arm. Put together: ${B.letter} is <b>${DIR_WORD[dir]}</b> of ${A.letter}.`;
+      qs.push({ text: `From ${bold(A.letter)}, which direction is ${bold(B.letter)}?`, choices: DIR8.map(d => [d]), grid: true, answer: DIR8.indexOf(dir),
+        hint: `Put your finger on city ${A.letter} and follow the dotted line to ${B.letter}. Does it go along ${A.letter}'s N or S arm, its E or W arm, or some of both?`,
+        reason: why + (naive !== dir ? ` On the screen ${B.letter} looks ${naiveWord} ${A.letter}, but on a globe north always points to the North Pole.` : "") });
+    }
+    if (polar && trap === 0) continue;   // from above, at least one pair must fool a "top of the screen is north" reader
+    const pic = { cities: cs, paths: pairs };
+    return { view: { sc, pic }, questions: qs };
+  }
+  return null;
+}
+
+function cityDir(A, B) {
+  const north = B.lat - A.lat, east = (mod(B.al - A.al + 180, 360) - 180) * Math.cos((A.lat + B.lat) / 2 * rad);
+  const ang = mod(Math.atan2(north, east) / rad, 360), k = Math.round(ang / 45) % 8;   // 0 = east, 90 = north
+  return Math.abs(mod(ang - k * 45 + 180, 360) - 180) <= 16 ? ["E", "NE", "N", "NW", "W", "SW", "S", "SE"][k] : null;
+}
+
+// Cameras for the tabs with sunlight. side: +1 = Sun on the left, -1 = Sun on the right.
+function sunCam(kind) {
+  const side = rng() < 0.5 ? 1 : -1;
+  if (kind === "above") return makeCam(90 * side, 90);
+  if (kind === "high") return makeCam(side * rnd(65, 90), rnd(55, 80));
+  return makeCam(side * rnd(70, 90), rnd(12, 35));
+}
+
+// ---------- tab 2: one city under the Sun ----------
+function genOneCity() {
+  const cat = pick(CATS);   // all six times of day equally often
+  for (let t = 0; t < 400; t++) {
+    const sc = mkScene(sunCam(pick(["above", "above", "high", "side"])), true);
+    const c = { cat, lat: rnd(25, 58), al: catAl(cat), letter: pick(["A", "B", "C", "D", "E"]), compass: true, beam: cat !== "night" };
+    const g = cityG(sc, c);
+    if (!compassOK(g) || !inView(g.x, g.y, 70) || !clearOK(sc, [g], 66)) continue;
+    if (cat !== "night" && (!sunDir8(c) || !sunArmOK(sc, g, sunDir8(c), c))) continue;
+    const L = c.letter, qs = [sunQ(c, true)];
+    qs.push({ text: `What time of day is it in ${bold(L)}?`, choices: SCALE, scale: true, answer: CATS.indexOf(cat), hint: TIME_HINT, reason: timeReason(cat, L), focus: c });
+    const pic = { cities: [c], spin: true, arrows: true };
+    return { view: { sc, pic }, questions: qs };
+  }
+  return null;
+}
+
+// ---------- tab 3: who's next? ----------
+function genNext() {
+  for (let t = 0; t < 600; t++) {
+    const sc = mkScene(sunCam(pick(["above", "above", "high"])), true);
+    const n = rng() < 0.5 ? 4 : 5, als = [];
+    for (let k = 0; k < 60 && als.length < n; k++) {
+      const a = rnd(-180, 180);
+      if (Math.abs(Math.abs(a) - 90) < 14) continue;
+      if (als.every(b => Math.abs(mod(a - b + 180, 360) - 180) >= 32)) als.push(a);
+    }
+    if (als.length < n) continue;
+    const cs = als.map(al => ({ lat: rnd(28, 55), al, compass: false }));
+    const night = cs.filter(c => Math.cos(c.al * rad) < 0), day = cs.filter(c => Math.cos(c.al * rad) > 0);
+    if (night.length < 2 || day.length < 2) continue;
+    const gs = cs.map(c => cityG(sc, c));
+    if (!gs.every(g => g.z > 0.15 && inView(g.x, g.y, 50)) || !spacedOK(gs, 70) || !clearOK(sc, gs, 66) || !marksOK(sc, cs, gs)) continue;
+    const best = (list, f) => { const s = list.map(c => [c, f(c)]).sort((x, y) => x[1] - y[1]); return s.length > 1 && s[1][1] - s[0][1] < 20 ? null : s[0][0]; };
+    const srNext = best(night, c => mod(-90 - c.al, 360)), ssNext = best(day, c => mod(90 - c.al, 360));
+    const ssJust = best(night, c => mod(c.al - 90, 360)), srJust = best(day, c => mod(c.al + 90, 360));
+    if (!srNext || !ssNext || !ssJust || !srJust) continue;
+    const letters = shuffle(["A", "B", "C", "D", "E"].slice(0, n)); cs.forEach((c, i) => c.letter = letters[i]);
+    const hint = "Find the edge where cities go from night into day, and the edge where they go from day into night. Then follow the spin arrow.";
+    const qs = [
+      qLetter("Which city will see <b>sunrise</b> next?", letters, srNext.letter, hint,
+        `Follow the spin arrow. Cities on the night side are moving toward the edge where night turns into day. City ${srNext.letter} is the closest one to that edge, so it sees sunrise next.`),
+      qLetter("Which city will see <b>sunset</b> next?", letters, ssNext.letter, hint,
+        `Follow the spin arrow. Cities on the day side are moving toward the edge where day turns into night. City ${ssNext.letter} is the closest one to that edge, so it sees sunset next.`)
+    ];
+    if (rng() < 0.5) qs.push(qLetter("Which city had <b>sunset</b> most recently?", letters, ssJust.letter, hint,
+      `City ${ssJust.letter} is in the night, and it's the night city closest to the edge where day turns into night. It crossed that edge most recently.`));
+    else qs.push(qLetter("Which city had <b>sunrise</b> most recently?", letters, srJust.letter, hint,
+      `City ${srJust.letter} is in the day, and it's the day city closest to the edge where night turns into day. It crossed that edge most recently.`));
+    const pic = { cities: cs, spin: true, arrows: true };
+    return { view: { sc, pic }, questions: qs };
+  }
+  return null;
+}
+
+// ---------- tab 4: two flashlights on grid paper ----------
+function genFlash() {
+  let angles;   // never 15 with 30: both are "morning", so the time-of-day question can't tell them apart (Adam, 2026-11-24)
+  do angles = shuffle([90, 50, 30, 15]).slice(0, 2); while (angles.includes(15) && angles.includes(30));   // 50 replaced 45 (Adam, 2026-11-25): 45 is a 10:35 AM Sun
+  const [a1, a2] = angles, more = a1 > a2 ? 1 : 2, less = 3 - more;
+  const kind = pick(["more direct", "less direct", "more energy", "less energy"]);
+  const ans = kind.startsWith("more") ? more : less;
+  const text = { "more direct": "Which flashlight's light is <b>more direct</b>?", "less direct": "Which flashlight's light is <b>less direct</b>?",
+    "more energy": "Which flashlight puts <b>more energy</b> on each square?", "less energy": "Which flashlight puts <b>less energy</b> on each square?" }[kind];
+  const hi = angles[more - 1], lo = angles[less - 1];
+  const reason = `Flashlight ${more} shines at ${hi}°, closer to straight down (90°). Its light lands on fewer squares, so each square gets more energy: it's more direct. Flashlight ${less}'s light (${lo}°) is spread over more squares.`;
+  const qs = [{ text, choices: [["Flashlight 1"], ["Flashlight 2"]], answer: ans - 1,
+    hint: "Count the squares each patch of light covers. The same light on fewer squares means more energy on each one.", reason }];
+  // Answer with descriptive times, one or two of them, so students see the morning and afternoon match (Adam, 2026-11-25).
+  // Equinox heights in NYC: 7 AM 11°, 9 AM 32°, noon 49°. Late morning (11 AM, 47°) is left out: too close to noon for a 50° flashlight.
+  const nycAns = { 15: [1, 5], 30: [2, 4], 50: [3], 90: [7] };
+  const nycWhy = (a, n) => a === 90 ? "90° is straight down. The Sun is never straight overhead in NYC." :
+    a === 50 ? `Flashlight ${n}'s light is at 50°. That's about as high as the Sun ever gets in NYC on the equinox: about 49°, at <b>noon</b>. That happens only once a day, at the top of the Sun's path.` :
+    a === 15 ? `Flashlight ${n}'s light comes in low, at 15°. In NYC the Sun is that low <b>early in the morning</b> (about 7 AM), and again <b>late in the afternoon</b> (about 5 PM). Morning and afternoon mirror each other: the Sun climbs until noon, then comes back down the same way.` :
+    `Flashlight ${n}'s light is at 30°. In NYC the Sun is that high <b>in the middle of the morning</b> (about 9 AM), and again <b>in the middle of the afternoon</b> (about 3 PM). Morning and afternoon mirror each other: the Sun climbs until noon, then comes back down the same way.`;
+  for (const i of shuffle([0, 1]).slice(0, rng() < 0.5 ? 1 : 2))
+    qs.push({ text: `In NYC, when is sunlight most like flashlight ${i + 1}'s light? <b>Pick one or two times.</b>`, choices: NYC_TIMES, times: true,
+      multi: nycAns[angles[i]], answer: nycAns[angles[i]][0], nycAngle: angles[i], flash: i + 1,
+      hint: "The Sun climbs all morning, is highest at noon, then comes back down the same way in the afternoon. Tap New York City's sky (bottom left) to see how high the Sun is at different times.",
+      hint2: "One of those is right. The Sun is just as high at one more time of day. Find it.", reason: nycWhy(angles[i], i + 1) });
+  const prob = { questions: qs, angles, flashFocus: null };
+  prob.draw = svg => drawFlash(svg, angles, prob.flashFocus);
+  return prob;
+}
+
+// Morning on the top row, afternoon on the bottom row, matching times stacked; noon spans both rows.
+const NYC_TIMES = [["Sunrise", "6 AM"], ["Early morning", "7 AM"], ["Mid-morning", "9 AM"], ["Noon", "12 PM"],
+  ["Mid-afternoon", "3 PM"], ["Late afternoon", "5 PM"], ["Sunset", "6 PM"], ["Impossible in NYC"]];
+const TIME_POS = [[1, 1], [1, 2], [1, 3], ["1 / span 2", 4], [2, 3], [2, 2], [2, 1], [3, "1 / -1"]];
+
+// ---------- tab 5: same latitude ----------
+function genSameLat() {
+  for (let t = 0; t < 600; t++) {
+    const sc = mkScene(sunCam(pick(["above", "above", "high"])), true);
+    const L = rnd(30, 52);
+    const cats = shuffle([pick(["sunrise", "sunset"]), "morning", "noon", "afternoon", "night"]);
+    const cs = cats.map(cat => ({ cat, lat: L, al: catAl(cat), compass: false }));
+    const m = cs.find(c => c.cat === "morning"), a = cs.find(c => c.cat === "afternoon");
+    if (Math.abs(Math.abs(m.al) - Math.abs(a.al)) < 12) continue;
+    const gs = cs.map(c => cityG(sc, c));
+    if (!gs.every(g => g.z > 0.15 && inView(g.x, g.y, 60)) || !spacedOK(gs, 80) || !clearOK(sc, gs, 66)) continue;
+    const letters = shuffle(["A", "B", "C", "D", "E"]); cs.forEach((c, i) => c.letter = letters[i]);
+    // Buttons follow the cities around the latitude line, the way Earth spins, from the city nearest the top (Adam, 2026-11-24)
+    const top = cs[gs.reduce((bi, g, i) => g.y < gs[bi].y ? i : bi, 0)];
+    const order = cs.slice().sort((x, y) => mod(x.al - top.al, 360) - mod(y.al - top.al, 360)).map(c => c.letter);
+    const qL = (t, l, an, h, r) => qLetter(t, l, an, h, r, order);
+    const by = cat => cs.find(c => c.cat === cat);
+    const lit = cs.filter(c => ["morning", "noon", "afternoon"].includes(c.cat));
+    const qs = [];
+    // 1: time of day
+    if (rng() < 0.5) { const cat = pick(["morning", "afternoon", "noon", cats.includes("sunrise") ? "sunrise" : "sunset", "night"]);
+      qs.push(Object.assign(qL(`Which city is <b>${CAT_PHRASE[cat]}</b>?`, letters, by(cat).letter, TIME_HINT, timeReason(cat, by(cat).letter)), { focus: by(cat) })); }
+    else { const c = pick(cs); qs.push({ text: `What time of day is it in ${bold(c.letter)}?`, choices: SCALE, scale: true, answer: CATS.indexOf(c.cat), hint: TIME_HINT, reason: timeReason(c.cat, c.letter), focus: c }); }
+    // 2: where the Sun is
+    const dirCands = cs.filter((c, i) => c.cat === "night" || (sunDir8(c) && compassOK(gs[i]) && sunArmOK(sc, gs[i], sunDir8(c), c)));
+    if (rng() < 0.6 && dirCands.length) {
+      const c = pick(dirCands); c.compass = true;
+      qs.push(sunQ(c, true));
+    } else {
+      const sr = by("sunrise"), ss = by("sunset");
+      const opts = [];
+      if (sr) opts.push(["Which city sees the Sun in the <b>east</b>?", sr.letter, `The Sun is due east at sunrise, and city ${sr.letter} is at sunrise. Later in the morning the Sun has moved toward the south (southeast).`]);
+      if (ss) opts.push(["Which city sees the Sun in the <b>west</b>?", ss.letter, `The Sun is due west at sunset, and city ${ss.letter} is at sunset. Earlier in the afternoon the Sun is more toward the south (southwest).`]);
+      opts.push(["Which city <b>can't see the Sun</b> right now?", by("night").letter, `City ${by("night").letter} is on the night side.`]);
+      const o = pick(opts); qs.push(qL(o[0], letters, o[1], "First work out the time of day in each city.", o[2]));
+    }
+    // 3: how direct
+    const noon = by("noon"), far = lit.slice().sort((x, y) => Math.abs(y.al) - Math.abs(x.al))[0];
+    const k = pick(["mostDirect", "mostEnergy", "least"]);
+    if (k === "mostDirect") qs.push(qL("Which city has the <b>most direct</b> sunlight?", letters, noon.letter,
+      "Which city is facing the Sun most straight on?", `City ${noon.letter} is around noon, in the middle of the day side, so the sunlight hits it most straight on. The same latitude line, but a different time of day.`));
+    else if (k === "mostEnergy") qs.push(qL("Which city is absorbing the <b>most energy</b>?", letters, noon.letter,
+      "More direct light puts more energy on each square. Which city gets the most direct light?", `City ${noon.letter} is around noon, so its light is the most direct and lands on the fewest squares. That's the most energy on each square.`));
+    else { const ls = lit.map(c => c.letter).sort();
+      qs.push(qL(`Of cities ${ls.join(", ").replace(/, ([^,]*)$/, " and $1")}, which is absorbing the <b>least energy</b>?`, ls, far.letter,
+        "The farther a city is from noon, the lower the Sun and the more the light spreads out.",
+        `City ${far.letter} is the farthest of the three from noon (it's ${CAT_PHRASE[far.cat]}, closer to ${far.cat === "morning" ? "sunrise" : "sunset"}). Its light comes in at the lowest angle and spreads over the most squares.`)); }
+    cs.forEach(c => { c.beam = c.cat !== "night"; });   // sunrise and sunset cities get a beam that just skims in
+    if (!marksOK(sc, cs, gs)) continue;
+    const pic = { cities: cs, spin: true, latLine: L };
+    return { view: { sc, pic }, questions: qs.filter(Boolean) };
+  }
+  return null;
+}
+
+// ---------- tab 6: same longitude ----------
+function genSameLon() {
+  const templates = [[0, 20, 40, 60], [5, 25, 45, 60], [0, 18, 38, 58], [10, 30, 50, 60]];
+  const variant = rng() < 0.5;   // Adam, 2026-11-24: sometimes a time other than noon
+  for (let t = 0; t < 3000; t++) {
+    const side = rng() < 0.5 ? 1 : -1;
+    const sc = mkScene(makeCam(side * rnd(50, 88), rnd(20, 48)), true, { R: 235 });
+    const al = variant ? (rng() < 0.5 ? -1 : 1) * rnd(22, 60) : rnd(-6, 6);   // 8-10:30 AM or 1:30-4 PM
+    const cs = pick(templates).map(lat => ({ lat: lat + rnd(-1, 1), al, compass: false, beam: true }));
+    const gs = cs.map(c => cityG(sc, c));
+    if (!gs.every(g => g.z > 0.15 && inView(g.x, g.y, 50)) || !spacedOK(gs, 62) || !clearOK(sc, gs, -18)) continue;
+    const perp = [-sc.s2[1], sc.s2[0]], offs = gs.map(g => g.x * perp[0] + g.y * perp[1]).sort((x, y) => x - y);
+    if (offs.some((o, i) => i && o - offs[i - 1] < 24)) continue;
+    // No compasses here (none on stations 13-14): the Sun's direction comes from the time of day.
+    const cat = variant ? (al > 0 ? "afternoon" : "morning") : "noon";
+    cs.forEach(c => c.cat = cat);
+    const dirCands = cs.filter(c => c.lat >= 15 && sunDir8(c) && (cat === "noon" ? sunDir8(c) === "S" : sunDir8(c).length === 2));
+    const dc = dirCands.length ? pick(dirCands) : null;
+    if (!marksOK(sc, cs, gs)) continue;
+    const letters = shuffle(["A", "B", "C", "D"]); cs.forEach((c, i) => c.letter = letters[i]);
+    // Grid boxes and answer buttons run top to bottom in the same order as the cities on the screen (Adam, 2026-11-24)
+    const order = cs.map((c, i) => [c.letter, gs[i].y]).sort((x, y) => x[1] - y[1]).map(x => x[0]);
+    const low = cs.slice().sort((x, y) => x.lat - y.lat)[0], high = cs.slice().sort((x, y) => y.lat - x.lat)[0];
+    const tc = pick(cs), qs = [];
+    qs.push({ text: `What time of day is it in ${bold(tc.letter)}?`, choices: SCALE, scale: true, answer: CATS.indexOf(cat), hint: TIME_HINT,
+      reason: `All four cities are on the same longitude line, a line from pole to pole. Cities on the same longitude line have the same time of day. ` +
+        (cat === "noon" ? "This line is in the middle of the day side, so it's around noon in every one of them."
+          : cat === "morning" ? "This line hasn't reached the middle of the day side yet (follow the spin arrow), so it's morning in every one of them."
+          : "This line has already passed the middle of the day side (follow the spin arrow), so it's afternoon in every one of them.") , focus: tc });
+    const dirQ = c => sunQ(c, false, cat === "noon" ? " (Not for a city right on the equator: at noon there, the Sun is straight overhead.)" : "");
+    const latQ = {
+      mostDirect: () => qLetter("Which city has the <b>most direct</b> sunlight?", letters, low.letter, "Look at the grid at each city. Where does the light land on the fewest squares?",
+        `City ${low.letter} is closest to the equator. At the same time of day, the light hits it most straight on, so it lands on the fewest squares.`, order),
+      leastDirect: () => qLetter("Which city has the <b>least direct</b> sunlight?", letters, high.letter, "Look at the grid at each city. Where is the light spread over the most squares?",
+        `City ${high.letter} is closest to the North Pole. The light hits it at a low, slanted angle and spreads over the most squares.`, order),
+      mostEnergy: () => qLetter("Which city is absorbing the <b>most energy</b>?", letters, low.letter, "More direct light puts more energy on each square. Which city gets the most direct light?",
+        `City ${low.letter} is closest to the equator, so its light is the most direct. The light lands on the fewest squares, so each square gets the most energy.`, order),
+      leastEnergy: () => qLetter("Which city is absorbing the <b>least energy</b>?", letters, high.letter, "Less direct light spreads out over more squares. Which city's light is the most spread out?",
+        `City ${high.letter} is closest to the North Pole, so its light is the least direct. The light is spread over the most squares, so each square gets the least energy.`, order)
+    };
+    const ks = shuffle(Object.keys(latQ));
+    if (dc) { qs.push(dirQ(dc)); qs.push(latQ[ks[0]]()); }
+    else { qs.push(latQ[ks[0]]()); qs.push(latQ[ks[1]]()); }
+    const pic = { cities: cs, spin: true, spinLat: -18, lonLine: al, insets: true, order };
+    return { view: { sc, pic }, questions: qs };
+  }
+  return null;
+}
+
+// ---------- tabs ----------
+const TABS = [
+  { label: "Directions", st: "Stations 1–3", gen: genDirections,
+    intro: "Every city has a compass drawn on it. Use the city's compass, not the top of the screen. North always points toward the North Pole." },
+  { label: "One city", st: "Stations 4–6", gen: genOneCity,
+    intro: "The Sun shines from one side. The dark side is night. The arrow shows which way Earth spins." },
+  { label: "Who's next?", st: "Stations 7–8", gen: genNext,
+    intro: "The arrow shows which way Earth spins. Which city gets there first?" },
+  { label: "Two flashlights", st: "Stations 9–10", gen: genFlash,
+    intro: "Two flashlights shine on the same grid paper. The colored shapes are where the light lands." },
+  { label: "Same latitude", st: "Stations 11–12", gen: genSameLat,
+    intro: "All five cities are on the same latitude line (the dark line). Each city the Sun reaches gets its own beam of sunlight." },
+  { label: "Same longitude", st: "Stations 13–14", gen: genSameLon,
+    intro: "All four cities are on the same longitude line (the dark line). Each city has its own beam. The boxes show the light on a small grid at each city." }
+];
+
+function finalize(p) { if (p && p.view) { p.view.cur = p.view.sc; p.draw = svg => drawGlobe(svg, spunScene(p.view.cur), spunPic(p.view.pic)); } return p; }
+// The tutorial's "watch a day go by" turns Earth under the Sun: SPIN_H hours later, every city (and the grid lines and
+// continents) has moved 15 degrees an hour; the camera and the Sun stay put. 0 = the picture as generated.
+let SPIN_H = 0;
+const spunScene = sc => SPIN_H ? Object.assign({}, sc, { lon0: sc.lon0 + 15 * SPIN_H }) : sc;
+function spunPic(pic) {
+  if (!SPIN_H) return pic;
+  const d = 15 * SPIN_H, cs = pic.cities.map(c => { const n = Object.assign({}, c, { al: c.al + d });
+    if (c.beam !== undefined) n.beam = sinAlt(n) > -0.001; return n; });
+  return Object.assign({}, pic, { cities: cs, focus: pic.focus ? cs[pic.cities.indexOf(pic.focus)] : null,
+    lonLine: pic.lonLine === undefined ? undefined : pic.lonLine + d, landShift: (pic.landShift || 0) + d });
+}
+function generate(tab, seed) {
+  for (let s = seed; s < seed + 50; s++) { rng = mulberry32(s * 7919 + tab * 1000003); const p = finalize(TABS[tab].gen()); if (p) { p.seed = s; if (p.view) p.view.pic.landShift = mod(s * 137.508, 360); return p; } }
+  return null;
+}
+
+// ---------- self-test: ?selftest=1 ----------
+const params = new URLSearchParams(location.search);
+if (params.get("selftest")) {
+  let out = "";
+  TABS.forEach((T, tab) => {
+    let fail = 0, bad = 0; const ans = {};
+    for (let s = 1; s <= 400; s++) {
+      rng = mulberry32(s * 7919 + tab * 1000003); const p = finalize(T.gen());
+      if (!p) { fail++; continue; }
+      for (const q of p.questions) { if (!(q.answer >= 0 && q.answer < q.choices.length)) bad++; const k = q.text.replace(/<[^>]+>/g, "").replace(/city [A-E]/g, "city _").slice(0, 46) + " → " + q.choices[q.answer][0]; ans[k] = (ans[k] || 0) + 1; }
+      const svg = document.createElementNS(SVGNS, "svg"); p.draw(svg);
+      if (/NaN|Infinity/.test(svg.innerHTML.replace(/data:[^"]*/g, ""))) bad++;
+    }
+    out += `\n== ${tab + 1} ${T.label}: no picture ${fail}/400 · broken ${bad}\n` + Object.entries(ans).sort().map(([k, v]) => `   ${v}\t${k}`).join("\n");
+  });
+  document.body.innerHTML = "<pre id='st'></pre>"; document.getElementById("st").textContent = out; document.title = "selftest done";
+  return;
+}
+
+// ---------- page ----------
+const $ = id => document.getElementById(id);
+const st = { tab: 0, prob: null, qi: 0, tries: 0, done: false, wrong: [], shown: null, fb: null, right: 0, total: 0 };
+const saved = {};   // each tab keeps its own picture and progress when you switch away (Adam, 2026-11-24)
+const recent = {};  // per tab: the last correct answers, so no answer comes up 3 times in a row (Adam, 2026-11-24)
+const answersOf = p => p.questions.map(q => q.multi ? q.multi.map(i => q.choices[i][0]).join(" + ") : q.choices[q.answer][0]);
+function noTriple(seq) { for (let i = 2; i < seq.length; i++) if (seq[i] === seq[i - 1] && seq[i] === seq[i - 2]) return false; return true; }
+if (params.get("clean")) document.body.classList.add("clean");
+
+TABS.forEach((T, i) => {
+  const b = document.createElement("button");
+  b.innerHTML = `${T.label}<small>${T.st}</small>`;
+  b.onclick = () => {
+    if (i === st.tab) return;
+    endTour();
+    saved[st.tab] = { prob: st.prob, qi: st.qi, tries: st.tries, done: st.done, wrong: st.wrong, shown: st.shown, fb: st.fb, sel: st.sel };
+    st.tab = i;
+    if (saved[i]) { Object.assign(st, saved[i]); setupPicture(); showQ(true); } else newPicture();
+  };
+  $("tabs").appendChild(b);
+});
+
+function newPicture(seed) {
+  if (seed) st.prob = generate(st.tab, seed);   // a picture asked for by number is shown as is
+  else {
+    const before = recent[st.tab] || [];
+    for (let k = 0; k < 40; k++) {
+      st.prob = generate(st.tab, Math.floor(Math.random() * 1e6) + 1);
+      if (noTriple(before.concat(answersOf(st.prob)))) break;
+    }
+  }
+  recent[st.tab] = (recent[st.tab] || []).concat(answersOf(st.prob)).slice(-2);
+  st.qi = 0;
+  setupPicture();
+  showQ();
+}
+function setupPicture() {
+  [...$("tabs").children].forEach((b, i) => b.classList.toggle("on", i === st.tab));
+  $("intro").textContent = TABS[st.tab].intro;
+  render();
+  $("svg").classList.toggle("turn", !!st.prob.view);
+  $("draghint").hidden = !st.prob.view; $("reset").hidden = !st.prob.view || st.prob.view.cur === st.prob.view.sc;
+  $("compassBtn").hidden = !st.prob.view; $("landBtn").hidden = !st.prob.view;
+  $("picinfo").textContent = `Picture ${st.tab + 1}-${st.prob.seed}`;
+  $("tourBtn").hidden = !TOURS[st.tab];
+  if (TOURS[st.tab] && !params.get("clean") && !tourSeen(st.tab)) startTour();
+  if (params.get("key")) $("key").innerHTML = "<ol>" + st.prob.questions.map(q => `<li>${q.text} <b>${q.multi ? pickNames(q, q.multi) : q.choices[q.answer][0]}</b><br><small>${q.reason}</small></li>`).join("") + "</ol>";
+}
+function render() {
+  const svg = $("svg"); while (svg.firstChild) svg.removeChild(svg.firstChild); st.prob.draw(svg);
+  const v = st.prob.view, f = v && v.pic.focus, sky = $("sky").querySelector("svg");
+  if (f && sky && sky.dataset.city === f.letter + f.al) paintSky(sky, f);   // keep the sky turned the same way as the globe
+  if (tour) tourPaint(svg);
+}
+// Dragging turns the camera: sideways = walk around the globe, up/down = look from higher or lower.
+// Sideways goes all the way around, so any city can be seen straight on.
+// The sky dome uses the same handler, so both pictures turn together.
+let frame = 0;
+function dragTurns(svg, vbW) {
+  let drag = null;
+  svg.addEventListener("pointerdown", ev => {
+    const v = st.prob && st.prob.view; if (!v) return;
+    drag = { x: ev.clientX, y: ev.clientY, a: v.cur.cam.a, e: v.cur.cam.e }; try { svg.setPointerCapture(ev.pointerId); } catch (e) { }
+  });
+  svg.addEventListener("pointermove", ev => {
+    if (!drag) return;
+    const v = st.prob.view, k = 0.35 * vbW / svg.getBoundingClientRect().width;
+    let a = drag.a - (ev.clientX - drag.x) * k, e = drag.e + (ev.clientY - drag.y) * k;
+    e = Math.max(-30, Math.min(90, e));
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => { v.cur = rescene(v.sc, a, e); render(); $("reset").hidden = false; });
+  });
+  ["pointerup", "pointercancel"].forEach(n => svg.addEventListener(n, () => { drag = null; }));
+}
+dragTurns($("svg"), W);
+function compassLabel() { $("compassBtn").textContent = COMPASS_ON ? "Compasses: on" : "Compasses: off"; $("compassBtn").classList.toggle("on", COMPASS_ON); }
+compassLabel();
+$("compassBtn").onclick = () => { COMPASS_ON = !COMPASS_ON; compassLabel(); render(); };
+function landLabel() { $("landBtn").textContent = LAND_ON ? "Continents: on" : "Continents: off"; $("landBtn").classList.toggle("on", LAND_ON); }
+landLabel();
+$("landBtn").onclick = () => { LAND_ON = !LAND_ON; landLabel(); render(); };
+$("reset").onclick = () => { st.prob.view.cur = st.prob.view.sc; render(); $("reset").hidden = true; };
+function showQ(keep) {   // keep = coming back to a tab: redraw this question as it was left
+  stopSpeech();
+  const q = st.prob.questions[st.qi];
+  if (!keep) { st.tries = 0; st.done = false; st.wrong = []; st.shown = null; st.fb = null; st.sel = []; }
+  st.sel = st.sel || [];
+  $("qcount").textContent = `Question ${st.qi + 1} of ${st.prob.questions.length}`;
+  $("qtext").innerHTML = q.text;
+  const box = $("choices"); box.innerHTML = ""; box.className = q.scale ? "scale" : q.grid ? "grid8" : q.times ? "times" : "";
+  const GRID = { NW: [1, 1], N: [1, 2], NE: [1, 3], W: [2, 1], E: [2, 3], SW: [3, 1], S: [3, 2], SE: [3, 3], "The Sun is not out": [2, 2] };
+  q.choices.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.innerHTML = c[0] + (c[1] ? `<small>${c[1]}</small>` : "");
+    b.onclick = () => q.multi ? toggleSel(i) : choose(i, b);
+    if (q.times) { const [r, k] = TIME_POS[i]; b.style.gridRow = r; b.style.gridColumn = k; }
+    if (q.grid) { const [r, k] = GRID[c[0]]; b.style.gridRow = r; b.style.gridColumn = k; if (c[0].length > 2) b.classList.add("mid"); }
+    box.appendChild(b);
+  });
+  const btns = [...box.children];
+  st.wrong.forEach(i => { btns[i].classList.add("wrong"); btns[i].disabled = true; });
+  if (st.shown !== null) [].concat(st.shown).forEach(i => btns[i].classList.add("right"));
+  st.sel.forEach(i => btns[i].classList.add("sel"));
+  $("check").hidden = !q.multi || st.done; $("check").disabled = !st.sel.length;
+  $("feedback").className = st.fb ? st.fb.cls : ""; $("feedback").innerHTML = st.fb ? st.fb.html : "";
+  if (st.done) { btns.forEach(b => b.disabled = true); collapseChoices(); showNext(false); } else $("next").hidden = true;
+  showFocus(st.done);
+  score();
+}
+function showFocus(on) {   // after the answer: only this city on the globe, plus its sky
+  const q = st.prob.questions[st.qi], v = st.prob.view, f = on && q.focus && v ? q.focus : null;
+  if (v && v.pic.focus !== f) { v.pic.focus = f; render(); }
+  if (st.prob.angles) { const ff = on && q.nycAngle !== undefined ? q.flash : null; if (st.prob.flashFocus !== ff) { st.prob.flashFocus = ff; render(); } }
+  if (f) drawSky($("sky"), f); else if (on && q.nycAngle !== undefined) drawNycAnswer($("sky"), q); else $("sky").innerHTML = "";
+  document.body.classList.toggle("answering", !!$("sky").firstChild);
+}
+// Once a question is finished, keep only the correct answer's button so the screen isn't crowded (Adam, 2026-11-24).
+function collapseChoices() {
+  const q = st.prob.questions[st.qi], box = $("choices");
+  const keep = q.multi || [q.answer];
+  [...box.children].forEach((b, i) => { if (!keep.includes(i)) b.style.display = "none"; else { b.style.gridRow = ""; b.style.gridColumn = ""; b.classList.remove("sel"); } });
+  box.className = "";
+}
+function showNext(focus) {
+  const last = st.qi === st.prob.questions.length - 1;
+  $("next").textContent = last ? "New picture →" : "Next question →"; $("next").hidden = false; if (focus) $("next").focus();
+}
+function choose(i, b) {
+  if (st.done) return;
+  const q = st.prob.questions[st.qi], btns = [...$("choices").children];
+  if (i === q.answer) {
+    b.classList.add("right"); st.shown = i; if (st.tries === 0) st.right++; st.total++;
+    finish(`<b>${st.tries === 0 ? "Yes!" : "Yes, that's it."}</b> ${q.reason}`, false);
+  } else {
+    b.classList.add("wrong"); b.disabled = true; st.wrong.push(i);
+    if (st.tries === 0) { st.tries = 1; st.fb = { cls: "try", html: `<b>Not quite.</b> ${q.hint} Try again.` }; $("feedback").className = st.fb.cls; $("feedback").innerHTML = st.fb.html; }
+    else { st.total++; btns[q.answer].classList.add("right"); st.shown = q.answer; finish(`<b>The answer is ${q.choices[q.answer][0]}.</b> ${q.reason}`, true); }
+  }
+}
+// Pick-one-or-two questions: tap times to select them (two at most), then Check.
+function toggleSel(i) {
+  if (st.done) return;
+  const q = st.prob.questions[st.qi], none = q.choices.length - 1;   // the last choice ("Impossible") stands alone
+  if (st.sel.includes(i)) st.sel = st.sel.filter(k => k !== i);
+  else if (i === none) st.sel = [i];
+  else { st.sel = st.sel.filter(k => k !== none).concat(i); if (st.sel.length > 2) st.sel.shift(); }
+  [...$("choices").children].forEach((b, k) => b.classList.toggle("sel", st.sel.includes(k)));
+  $("check").disabled = !st.sel.length;
+}
+const pickNames = (q, list) => list.map(i => q.choices[i][0] + (q.choices[i][1] ? ` (${q.choices[i][1]})` : "")).join(" and ");
+function checkMulti() {
+  const q = st.prob.questions[st.qi], btns = [...$("choices").children], ans = q.multi;
+  const good = st.sel.filter(i => ans.includes(i)), bad = st.sel.filter(i => !ans.includes(i));
+  if (!bad.length && good.length === ans.length) {
+    good.forEach(i => btns[i].classList.add("right")); st.shown = ans.slice(); st.sel = [];
+    if (st.tries === 0) st.right++; st.total++;
+    finish(`<b>${st.tries === 0 ? "Yes!" : "Yes, that's it."}</b> ${q.reason}`, false); return;
+  }
+  if (st.tries === 0) {
+    st.tries = 1;
+    bad.forEach(i => { btns[i].classList.add("wrong"); btns[i].classList.remove("sel"); btns[i].disabled = true; st.wrong.push(i); });
+    st.sel = good; $("check").disabled = !st.sel.length;
+    const h = !bad.length ? q.hint2 : good.length ? "One of those is right and one isn't. " + q.hint : q.hint;
+    st.fb = { cls: "try", html: `<b>Not quite.</b> ${h} Try again.` }; $("feedback").className = st.fb.cls; $("feedback").innerHTML = st.fb.html;
+  } else {
+    st.total++; ans.forEach(i => btns[i].classList.add("right")); st.shown = ans.slice(); st.sel = [];
+    finish(`<b>The answer is ${pickNames(q, ans)}.</b> ${q.reason}`, true);
+  }
+}
+$("check").onclick = checkMulti;
+function finish(html, missed) {
+  st.done = true; $("check").hidden = true;
+  [...$("choices").children].forEach(b => b.disabled = true);
+  st.fb = { cls: "done" + (missed ? " missed" : ""), html };
+  $("feedback").className = st.fb.cls; $("feedback").innerHTML = html;
+  collapseChoices();
+  showFocus(true);
+  showNext(true);
+  score();
+}
+$("next").onclick = () => { if (st.qi < st.prob.questions.length - 1) { st.qi++; showQ(); } else newPicture(); };
+// ---------- NYC's sky explorer (Two flashlights; Adam, 2026-11-25) ----------
+// New York City on the equinox, with a time-of-day slider only. The full version (latitude and time-of-year sliders too)
+// was split out as U4-Sun-Height-Explorer.html to be iterated on separately for Unit 4; the two copies no longer share code.
+// Times are solar time (the Sun is highest at 12:00).
+const LAB = { hour: 10, lat: 41, a: 0, e: 24 };
+function daylight(lat, decl) {   // sunrise and sunset (solar time), or the whole day lit / dark
+  const x = -Math.tan(lat * rad) * Math.tan(decl * rad);
+  if (x <= -1) return { all: true }; if (x >= 1) return { none: true };
+  const h = Math.acos(x) / rad / 15; return { rise: 12 - h, set: 12 + h };
+}
+const sunHeight = (lat, decl, hour) => Math.asin(Math.sin(lat * rad) * Math.sin(decl * rad) + Math.cos(lat * rad) * Math.cos(decl * rad) * Math.cos((hour - 12) * 15 * rad)) / rad;
+function labPaint() {
+  const svg = $("labSky").querySelector("svg"), dl = 0;   // equinox
+  paintSky(svg, { lat: LAB.lat, al: (LAB.hour - 12) * 15 }, { basis: camBasis(LAB.a, LAB.e), decl: dl, marks: [6, 8, 10, 12, 14, 16, 18],
+    title: "New York City's sky", sub: clockAt(LAB.hour), label: "NYC" });
+  $("labTimeV").textContent = clockAt(LAB.hour);
+  const dlt = daylight(LAB.lat, dl), pct = h => (h / 24 * 100).toFixed(2) + "%", night = "#9aa3b5", day = "#F5C542";
+  $("labTime").style.setProperty("--track", dlt.all ? day : dlt.none ? night
+    : `linear-gradient(to right, ${night} 0 ${pct(dlt.rise)}, ${day} ${pct(dlt.rise)} ${pct(dlt.set)}, ${night} ${pct(dlt.set)} 100%)`);
+  const h = sunHeight(LAB.lat, dl, LAB.hour), top = sunHeight(LAB.lat, dl, 12), fl = st.prob && st.prob.angles;
+  $("labRead").innerHTML = (h > 0.5 ? `At ${clockAt(LAB.hour)} the Sun is <b>${Math.round(h)}°</b> above the horizon.` : `At ${clockAt(LAB.hour)} the Sun is <b>below the horizon</b>.`) +
+    (dlt.none ? "<br>The Sun doesn't rise at all today." : `<br>Highest today: <b>${Math.round(top)}°</b>, at noon.`) +
+    (dlt.all ? "<br>The Sun doesn't set at all today." : dlt.none ? "" : `<br>Sunrise ${clockAt(dlt.rise)} · sunset ${clockAt(dlt.set)}.`) +
+    (fl ? `<br>The flashlights: 1 at <b>${fl[0]}°</b>, 2 at <b>${fl[1]}°</b>.` : "");
+  $("labSide").innerHTML = ""; $("labSide").appendChild(sideView(h, `The sunlight at ${clockAt(LAB.hour)}, from the side`));
+}
+// The Sun's light seen from the side, drawn like the flashlight side views, so the two can be compared directly.
+function sideView(deg, caption) {
+  const svg = el("svg", { viewBox: "0 0 320 200", class: "sideview", role: "img", "aria-label": caption }); defs(svg);
+  const gy = 168, Px = 210, L = 130;   // L keeps even a 90-degree Sun clear of the caption
+  text(svg, 160, 20, caption, { "text-anchor": "middle", "font-size": 16, "font-weight": 700, fill: "#333" });
+  el("line", { x1: 20, y1: gy, x2: 300, y2: gy, stroke: "#7A5230", "stroke-width": 5 }, svg);
+  text(svg, 24, gy + 24, "the ground", { "font-size": 14, fill: "#7A5230" });
+  if (deg <= 0.5) { text(svg, 160, 84, "The Sun is below the horizon", { "text-anchor": "middle", "font-size": 16, "font-weight": 600, fill: "#2b3a55" }); return svg; }
+  const d = [Math.cos(deg * rad), Math.sin(deg * rad)], sx = Px - d[0] * L, sy = gy - d[1] * L;
+  el("line", { x1: sx, y1: sy, x2: Px - d[0] * 6, y2: gy - d[1] * 6, stroke: "#F28C28", "stroke-width": 5, "marker-end": "url(#ahSun)" }, svg);
+  el("circle", { cx: sx, cy: sy, r: 13, fill: "#FFD23F", stroke: "#E0A800", "stroke-width": 3 }, svg);
+  const ar = 44, p1 = [Px - ar * d[0], gy - ar * d[1]];
+  el("path", { d: `M${Px - ar},${gy} A${ar},${ar} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`, fill: "none", stroke: "#222", "stroke-width": 2.5 }, svg);
+  const m = deg * rad / 2;
+  text(svg, Px - (ar + 26) * Math.cos(m), gy - (ar + 16) * Math.sin(m) + 7, Math.round(deg) + "°", Object.assign({ "text-anchor": "middle", "font-size": 20, "font-weight": 700 }, HALO));
+  return svg;
+}
+function openSkyLab(p) {
+  Object.assign(LAB, { a: 0, e: 24 }, p || {});
+  $("labTime").value = LAB.hour;
+  if (!$("labSky").querySelector("svg")) {
+    const svg = el("svg", { viewBox: "0 0 440 300", role: "img", "aria-label": "The Sun's path in the sky" }, $("labSky"));
+    let dr = null;
+    svg.addEventListener("pointerdown", ev => { dr = { x: ev.clientX, y: ev.clientY, a: LAB.a, e: LAB.e }; try { svg.setPointerCapture(ev.pointerId); } catch (e) { } });
+    // dragging right turns the near side of the dome to the right, with the finger (was backwards; Adam, 2026-11-25)
+    svg.addEventListener("pointermove", ev => { if (!dr) return; LAB.a = dr.a + (ev.clientX - dr.x) * 0.5; LAB.e = Math.max(5, Math.min(85, dr.e + (ev.clientY - dr.y) * 0.4)); labPaint(); });
+    ["pointerup", "pointercancel"].forEach(n => svg.addEventListener(n, () => { dr = null; }));
+  }
+  $("skylab").hidden = false; labPaint();
+  if (tour && tour.steps[tour.i].nycOpen && !tour.ok) tourDone("That's New York City's sky. Try the time slider, then close it.");
+}
+$("labTime").oninput = () => { LAB.hour = parseFloat($("labTime").value); labPaint(); };
+$("labClose").onclick = () => { $("skylab").hidden = true; };
+// After an NYC flashlight question: NYC's sky with the Sun at that flashlight's angle (or as high as it gets).
+function drawNycAnswer(box, q) {   // the sky and the side view are in the picture now; the panel keeps the note
+  const A = nycSun(q.nycAngle);
+  box.innerHTML = "";
+  const note = document.createElement("div"); note.className = "skyhint";
+  note.innerHTML = A.never ? `In New York City the Sun never gets to ${A.a}°. On the equinox the highest it gets is <b>${Math.round(A.top)}°</b>, at noon.`
+    : A.twin ? `On the equinox, the Sun is ${A.a}° high <b>twice</b>: at about <b>${clockAt(A.hour)}</b> and about <b>${clockAt(A.twin)}</b>. Morning and afternoon mirror each other.`
+    : `${A.a}° is about as high as NYC's Sun gets on the equinox: ${Math.round(A.top)}°, at <b>noon</b>.`;
+  box.appendChild(note);
+  const b = document.createElement("button"); b.className = "nycbtn"; b.textContent = "Explore NYC's sky"; b.onclick = () => openSkyLab({ hour: Math.round(A.hour * 4) / 4 }); box.appendChild(b);
+}
+// ---------- tutorial mode ----------
+// A step-through on the student's own picture (Adam, 2026-11-24). Each step dims everything but one part, says what to
+// notice, and asks for a small action (tap something, turn the globe) before Next unlocks. It opens by itself the first
+// time a tab is opened on that Chromebook; after that it's the "How to read this picture" button. One city first, for review.
+let tour = null;   // { steps, i, ok, moved }
+const unproject = (sc, x, y) => {   // a point on the picture -> the point on the globe under it (front side), or null
+  const rx = (x - sc.cx) / sc.R, ry = -(y - sc.cy) / sc.R, r2 = rx * rx + ry * ry;
+  if (r2 > 1) return null;
+  const rz = Math.sqrt(1 - r2), c = sc.cam;
+  return [0, 1, 2].map(k => rx * c.R[k] + ry * c.U[k] + rz * c.C[k]);
+};
+function sunSpot(sc) {
+  if (sc.sunSide < 0.3) return null;
+  const s2 = sc.s2, tx = s2[0] > 1e-6 ? (W - sc.cx) / s2[0] : s2[0] < -1e-6 ? -sc.cx / s2[0] : Infinity;
+  const ty = s2[1] > 1e-6 ? (H - sc.cy) / s2[1] : s2[1] < -1e-6 ? -sc.cy / s2[1] : Infinity, t = Math.min(tx, ty);
+  return { x: sc.cx + s2[0] * t, y: sc.cy + s2[1] * t, r: 170 };
+}
+const globeSpot = sc => ({ x: sc.cx, y: sc.cy, r: sc.R + 14 });
+const citySpot = (x, i, r) => x.gs[i].z > 0.02 ? { x: x.gs[i].x, y: x.gs[i].y, r } : globeSpot(x.sc);
+function tourCtx() {
+  if (!st.prob.view) return { angles: st.prob.angles, t: tour.t };
+  const v = st.prob.view, sc = v.cur, pic = v.pic, cs = pic.cities, { gs, gd } = cityGs(sc, pic), c = cs[0];
+  return { sc, pic, cs, gs, gd, c, L: c.letter, g: gs[0], facing: dot(sc.cam.C, pos(c.lat, c.al)), t: tour.t };
+}
+// tap helpers (p is a point in picture coordinates)
+const nearPts = (pts, p) => Math.min(Infinity, ...pts.filter(q => q.z > 0.02).map(q => Math.hypot(p[0] - q.x, p[1] - q.y)));
+function tappedCity(x, p) {   // the city whose dot or letter was tapped, or null
+  let best = null, bd = 30;
+  x.cs.forEach((c, i) => {
+    const g = x.gd[i]; if (g.z <= 0.02) return;
+    const [bx, by] = bubbleAt(x.sc, g, COMPASS_ON, x.pic.compassL || 32);
+    const d = Math.min(Math.hypot(p[0] - g.x, p[1] - g.y), Math.hypot(p[0] - bx, p[1] - by) + 8);
+    if (d < bd) { bd = d; best = c; }
+  });
+  return best;
+}
+function tappedArm(g, p) {   // the compass arm tapped, or null
+  const near = k => Math.min(Math.hypot(p[0] - g.lab[k][0], p[1] - (g.lab[k][1] - 6)), ...g.arm[k].slice(3).map(q => Math.hypot(p[0] - q.x, p[1] - q.y)));
+  const k = ["N", "E", "S", "W"].sort((a, b) => near(a) - near(b))[0];
+  return near(k) <= 24 ? k : null;
+}
+const armStep = (k, which) => ({   // which(x) -> index of the city to use
+  spot: x => citySpot(x, x.t, ARM_PX + 40),
+  setup: x => { if (!COMPASS_ON) { COMPASS_ON = true; compassLabel(); } tour.t = which(tourCtx()); },
+  tap: (x, p) => {
+    const g = x.gd[x.t], L = x.cs[x.t].letter;
+    if (g.z <= 0.02) return `Turn the globe so you can see city ${L}.`;
+    const c = tappedCity(x, p); if (c && c.letter !== L) return `That's city ${c.letter}. Find city ${L}.`;
+    const a = tappedArm(g, p);
+    if (!a) return `Tap right on one of city ${L}'s compass arms.`;
+    return a === k ? true : `That's the <b>${a}</b> arm.` + (k === "N" ? " N is the red one with the arrowhead." : "");
+  } });
+const dayRank = c => Math.cos(c.lat * rad) * Math.cos(c.al * rad);   // how high the Sun is: bigger = more direct light
+// steps several tabs share
+const STEP = {
+  sun: { title: "Where the light comes from",
+    text: x => "The big yellow curve at the edge is <b>the Sun</b>. The Sun is huge and very far away, so only a slice of it fits in the picture. Sunlight reaches Earth in parallel lines: it all travels in the same direction.",
+    ask: x => "Tap the Sun.",
+    spot: x => sunSpot(x.sc),
+    tap: (x, p) => {
+      const d = [p[0] - x.sc.cx, p[1] - x.sc.cy];
+      if (Math.hypot(d[0], d[1]) < x.sc.R) return "That's Earth. The Sun is the big yellow curve at the edge of the picture.";
+      return x.sc.sunSide < 0.3 || ang2(d, x.sc.s2) < 50 ? true : "Look for the yellow curve at the edge of the picture.";
+    } },
+  night: { title: "Day and night",
+    text: x => "The half of Earth that faces the Sun is in <b>daylight</b>. The shaded half faces away from the Sun, so it is <b>night</b> there. The glow is brightest where the Sun is straight overhead.",
+    ask: x => "Tap a spot where it is night.",
+    spot: x => globeSpot(x.sc),
+    tap: (x, p) => { const w = unproject(x.sc, p[0], p[1]);
+      return !w ? "Tap on Earth." : w[0] < -0.03 ? true : "That spot is in daylight. Tap the shaded part."; } },
+  sunrise: { title: "Earth spins",
+    text: x => "The purple arrow shows which way Earth spins. The spin carries every city around: out of the night into the day (<b>sunrise</b>), across the middle of the day side (<b>noon</b>), and into the night (<b>sunset</b>).",
+    ask: x => "Tap the edge where cities are coming <i>into</i> the daylight. That's where it is sunrise. (Turn the globe if you can't see it.)",
+    spot: x => globeSpot(x.sc),
+    tap: (x, p) => { const w = unproject(x.sc, p[0], p[1]);
+      if (!w) return "Tap on Earth, on the line between day and night.";
+      if (Math.abs(w[0]) > 0.22) return "Tap right on the line between the day side and the night side.";
+      return w[1] < 0 ? true : "That's the <b>sunset</b> edge. There the spin carries cities into the night. Follow the arrow and find the other edge."; } },
+  sunset: { title: "The other edge",
+    text: x => "On the other edge, the spin carries cities out of the daylight and into the night. That edge is <b>sunset</b>.",
+    ask: x => "Tap the sunset edge. (Turn the globe if you can't see it.)",
+    spot: x => globeSpot(x.sc),
+    tap: (x, p) => { const w = unproject(x.sc, p[0], p[1]);
+      if (!w) return "Tap on Earth, on the line between day and night.";
+      if (Math.abs(w[0]) > 0.22) return "Tap right on the line between the day side and the night side.";
+      return w[1] > 0 ? true : "That's the <b>sunrise</b> edge, where cities come into the day. Find the other edge."; } }
+};
+const TOURS = {
+  0: [   // Directions
+    { title: "The North Pole",
+      text: x => "The black dot is the <b>North Pole</b>. On a globe, north always means toward the North Pole.",
+      ask: x => "Tap the North Pole.",
+      spot: x => { const n = x.sc.P([0, 0, 1]); return n.z > 0.05 ? { x: n.x, y: n.y, r: 60 } : globeSpot(x.sc); },
+      tap: (x, p) => { const n = x.sc.P([0, 0, 1]);
+        if (n.z <= 0.05) return "Turn the globe so you can see the North Pole.";
+        return Math.hypot(p[0] - n.x, p[1] - n.y) < 26 ? true : "Look for the black dot labeled North Pole."; } },
+    Object.assign(armStep("N", x => x.gd.map((g, i) => [i, g.z > 0.02 ? ang2(g.dir.N, [0, -1]) : -1]).sort((a, b) => b[1] - a[1])[0][0]), {
+      title: "Every city has its own compass",
+      text: x => `Each compass is drawn on the ground at its city. Its <b>N</b> arm points along the globe toward the North Pole. So north is a different way on the screen for each city. <b>The top of the screen is not north.</b>`,
+      ask: x => `Look at city ${x.cs[x.t].letter}. Tap its N arm.` }),
+    Object.assign(armStep("E", x => x.gd.map((g, i) => [i, g.z > 0.02 ? ang2(g.dir.E, [1, 0]) : -1]).sort((a, b) => b[1] - a[1])[0][0]), {
+      title: "East and west",
+      text: x => "The <b>E</b> and <b>W</b> arms follow the latitude line through the city, the line that circles the globe. On a globe these lines curve, so E and W curve too.",
+      ask: x => `Tap city ${x.cs[x.t].letter}'s E arm.` }),
+    { title: "Turn the globe",
+      text: x => "Drag the globe to turn it. Watch the compasses: they turn with the globe, but every N arm still points to the North Pole.",
+      ask: x => "Drag the globe to turn it a little.",
+      spot: x => globeSpot(x.sc),
+      check: x => Math.abs(mod(x.sc.cam.a - tour.cam0.a + 180, 360) - 180) + Math.abs(x.sc.cam.e - tour.cam0.e) > 25,
+      okMsg: x => "That's it. Use \"Reset view\" any time to go back." },
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br><b>From one city, which direction is another?</b> Put your finger on the first city and follow the dotted line to the second.<br><br>" +
+        "Along the first city's <b>N</b> or <b>S</b> arm? Along its <b>E</b> or <b>W</b> arm? Or some of both (like NE or SW)? Use the city's compass, not the top of the screen.",
+      last: true }
+  ],
+  1: [   // One city
+    STEP.sun, STEP.night,
+    { title: "Find the city",
+      text: x => `This picture is about <b>city ${x.L}</b>. The red dot is the city. You can turn the globe to see it better.`,
+      ask: x => `Drag the globe so city ${x.L} is near the middle of Earth.`,
+      spot: x => citySpot(x, 0, 62),
+      check: x => x.facing > 0.85,
+      okMsg: x => `Nice. City ${x.L} is facing you now.` },
+    Object.assign(armStep("N", x => 0), {
+      title: "The city's compass",
+      text: x => `The compass is drawn on the ground at city ${x.L}. <b>N</b> points along the globe toward the North Pole. That is not always the top of the screen. <b>E</b> and <b>W</b> follow the latitude line, so they curve.`,
+      ask: x => `Tap the N arm of city ${x.L}'s compass.` }),
+    STEP.sunrise,
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br><b>Which direction is the Sun?</b> Find the city's compass. Which arm, or which gap between two arms, points toward the Sun?<br><br>" +
+        "<b>What time of day is it?</b> Follow the spin arrow. Is the city coming into the day, in the middle of the day, heading into the night, or in the dark?",
+      last: true }
+  ],
+  2: [   // Who's next?
+    STEP.sun, STEP.night, STEP.sunrise, STEP.sunset,
+    { title: "Who gets there first",
+      text: x => "Each city travels around its own latitude line, the way the purple arrow goes. A city in the night is heading toward the <b>sunrise</b> edge. A city in the day is heading toward the <b>sunset</b> edge. Distance counts <i>along the way the city travels</i>.",
+      ask: x => "Tap the city that will see sunrise next.",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => {
+        const c = tappedCity(x, p); if (!c) return "Tap a city's red dot.";
+        if (Math.cos(c.al * rad) > 0) return `City ${c.letter} is in daylight. The next edge it reaches is sunset, not sunrise.`;
+        const next = x.cs.filter(d => Math.cos(d.al * rad) < 0).sort((a, b) => mod(-90 - a.al, 360) - mod(-90 - b.al, 360))[0];
+        return c === next ? true : `City ${c.letter} will see sunrise, but another night city is closer to the sunrise edge. Follow the spin arrow.`;
+      } },
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br><b>Next</b> means look <i>ahead</i> along the spin arrow: which city is closest to the edge it is heading for?<br><br>" +
+        "<b>Most recently</b> means look <i>behind</i>: which city just crossed that edge?",
+      last: true }
+  ],
+  3: [   // Two flashlights
+    { title: "From the side",
+      text: x => "On the right you see each flashlight from the side. The number with the ° sign is the angle between the light and the paper. <b>90°</b> is straight down. A small angle is low and slanted.",
+      ask: x => "Tap flashlight 1's angle.",
+      spot: x => ({ x: 470, y: 8, w: 425, h: 565 }),
+      tap: (x, p) => {
+        const lab = i => { const a = x.angles[i], mid = a * rad / 2, py = (i === 0 ? 20 : 305) + 232; return [770 - 74 * Math.cos(mid), py - 66 * Math.sin(mid)]; };
+        const d = [0, 1].map(i => Math.hypot(p[0] - lab(i)[0], p[1] - lab(i)[1]));
+        return d[0] < 32 ? true : d[1] < 32 ? "That's flashlight 2's angle. Flashlight 1 is the top one." : "Tap the number with the ° sign, next to the flashlight's beam.";
+      } },
+    { title: "From above",
+      text: x => "On the left you are looking straight down at the grid paper. The orange patches are where each flashlight's light lands. Both flashlights give out the <b>same amount</b> of light.",
+      ask: x => "Tap flashlight 2's patch of light.",
+      spot: x => ({ x: 30, y: 52, w: 412, h: 412 }),
+      tap: (x, p) => {
+        const inP = i => { const s = Math.sin(x.angles[i] * rad), cx = 40 + 7.6 * 28, cy = 62 + (i === 0 ? 3.5 : 10.5) * 28;
+          return ((p[0] - cx) / (28 / s)) ** 2 + ((p[1] - cy) / 28) ** 2 <= 1.3; };
+        return inP(1) ? true : inP(0) ? "That's flashlight 1's patch. Look for the 2." : "Tap inside an orange patch.";
+      } },
+    { title: "Spread out or bunched up",
+      text: x => "The same light on <b>fewer squares</b> puts more energy on each square. That light is <b>more direct</b>. The same light spread over <b>more squares</b> puts less energy on each one: it is <b>less direct</b>.",
+      ask: x => "Tap the patch that is spread over more squares.",
+      spot: x => ({ x: 30, y: 52, w: 412, h: 412 }),
+      tap: (x, p) => {
+        const inP = i => { const s = Math.sin(x.angles[i] * rad), cx = 40 + 7.6 * 28, cy = 62 + (i === 0 ? 3.5 : 10.5) * 28;
+          return ((p[0] - cx) / (28 / s)) ** 2 + ((p[1] - cy) / 28) ** 2 <= 1.3; };
+        const wide = x.angles[0] < x.angles[1] ? 0 : 1, hit = inP(0) ? 0 : inP(1) ? 1 : -1;
+        if (hit < 0) return "Tap inside an orange patch.";
+        return hit === wide ? true : "That patch covers fewer squares. Count the squares under each one.";
+      },
+      okMsg: x => "Yes. A lower angle spreads the light out more." },
+    { title: "The Sun in NYC",
+      text: x => "The flashlights stand in for the Sun. In NYC on the spring and fall equinox, the Sun is about <b>49°</b> high at noon. That's the highest it gets that day. In the morning the Sun is lower, so its light comes in at a smaller angle. The Sun is <b>never</b> straight overhead (90°) in NYC.",
+      ask: x => "Tap New York City's sky (bottom left) to open it.",
+      spot: x => ({ x: 28, y: 456, w: 416, h: 124 }),
+      nycOpen: true },
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br><b>More direct, more energy:</b> which patch covers fewer squares? Which angle is closer to 90°?<br><br>" +
+        "<b>When in NYC:</b> NYC's Sun is about 49° high at noon, the highest it gets. It climbs in the morning and comes back down the same way in the afternoon, so most heights happen <b>twice</b> a day. Higher than 49°-ish means impossible.",
+      last: true }
+  ],
+  4: [   // Same latitude
+    STEP.sun,
+    { title: "The latitude line",
+      text: x => "All the cities are on the dark line, <b>the same latitude line</b>. They are all the same distance from the equator. What's different is <i>where</i> they are on the line.",
+      ask: x => "Tap the dark latitude line.",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => nearPts(latPts(x.sc, x.pic.latLine), p) < 16 ? true : "Tap right on the dark line that circles the globe." },
+    { title: "Time of day along the line",
+      text: x => "Earth spins (the purple arrow), carrying every city around this line once a day. Where a city is on the line tells you its time of day: coming into the day is <b>sunrise</b>, the middle of the day side is <b>noon</b>, going into the night is <b>sunset</b>.",
+      ask: x => "Tap the city where it is around noon.",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => { const c = tappedCity(x, p); if (!c) return "Tap a city's red dot.";
+        return c.cat === "noon" ? true : `City ${c.letter} is ${CAT_PHRASE[c.cat]}. Noon is the middle of the day side.`; } },
+    { title: "How direct is the light",
+      text: x => "Look at the beams. At noon the light hits most straight on. Closer to sunrise or sunset, the light comes in low and spreads out, so each square gets less energy.",
+      ask: x => "Tap the city where the sunlight comes in lowest (the most spread out).",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => { const c = tappedCity(x, p); if (!c) return "Tap a city's red dot.";
+        if (c.cat === "night") return `City ${c.letter} is in the night: it gets no sunlight at all.`;
+        const low = x.cs.filter(d => d.cat !== "night").sort((a, b) => dayRank(a) - dayRank(b))[0];
+        return c === low ? true : `City ${c.letter}'s light is less spread out than another city's. Look for the beam that just skims in.`; } },
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br>Same latitude, different time of day. Use the spin arrow to find each city's time of day.<br><br>" +
+        "The closer a city is to noon, the more direct its light and the more energy it absorbs.",
+      last: true }
+  ],
+  5: [   // Same longitude
+    STEP.sun,
+    { title: "The longitude line",
+      text: x => "All four cities are on the dark line, a <b>longitude line</b> that runs from pole to pole. As Earth spins, the whole line moves together. So every city on it has the <b>same time of day</b>.",
+      ask: x => "Tap the dark longitude line.",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => nearPts(lonPts(x.sc, x.pic.lonLine), p) < 16 ? true : "Tap right on the dark line that runs to the North Pole." },
+    { title: "The grids",
+      text: x => "Each box shows a small piece of grid paper at one city. The orange patch is where that city's beam lands. The boxes go top to bottom in the same order as the cities on the globe.",
+      ask: x => "Tap the box for the city closest to the equator.",
+      spot: x => ({ x: (x.sc.sunLeft ? 640 : 20) - 8, y: 16, w: 256, h: 560 }),
+      tap: (x, p) => {
+        const x0 = x.sc.sunLeft ? 640 : 20, i = Math.floor((p[1] - 50) / 128);
+        if (p[0] < x0 || p[0] > x0 + 240 || i < 0 || i >= x.pic.order.length || p[1] - 50 - i * 128 > 116) return "Tap one of the boxes.";
+        const low = x.cs.slice().sort((a, b) => a.lat - b.lat)[0], L = x.pic.order[i];
+        return L === low.letter ? true : `That's city ${L}'s box. First find the city closest to the equator (the dashed line).`;
+      },
+      okMsg: x => "Yes. Its light lands on the fewest squares." },
+    { title: "Latitude and direct light",
+      text: x => "Closer to the equator, the light hits more straight on and lands on fewer squares. Closer to the North Pole, the light comes in slanted and spreads out.",
+      ask: x => "Tap the city on the globe with the least direct light.",
+      spot: x => globeSpot(x.sc),
+      tap: (x, p) => { const c = tappedCity(x, p); if (!c) return "Tap a city's red dot.";
+        const high = x.cs.slice().sort((a, b) => b.lat - a.lat)[0];
+        return c === high ? true : `City ${c.letter} gets more direct light than another city. Which city is closest to the North Pole?`; } },
+    { title: "Your turn",
+      text: x => "You'll get a new picture now.<br><br>Same longitude: every city has the <b>same time of day</b>. What changes is latitude.<br><br>" +
+        "Closer to the equator means more direct light and more energy on each square. Check the grids to be sure.",
+      last: true }
+  ]
+};
+// ---------- "watch a day go by" (Adam, 2026-11-25) ----------
+// A tour step with anim: {...} shows Play and a time slider. Playing runs one whole day in 16 seconds; reaching the end
+// (by playing or dragging the slider) unlocks Next. Cities that cross into or out of the daylight get a "Sunrise!" or
+// "Sunset!" label for a moment.
+let spinFrame = 0, spinLast = 0;
+const clockAt = h => { h = mod(Math.round(h * 4) / 4, 24); const H = Math.floor(h), M = Math.round((h - H) * 60);
+  return `${H % 12 || 12}:${String(M).padStart(2, "0")} ${H < 12 ? "AM" : "PM"}`; };
+function setSpin(h) {
+  const prev = SPIN_H; SPIN_H = Math.max(0, Math.min(24, h));
+  if (tour && SPIN_H > prev && SPIN_H - prev < 1.5) {   // moving forward: note who crossed into or out of the light
+    st.prob.view.pic.cities.forEach((c, i) => {
+      const a = sinAlt({ lat: c.lat, al: c.al + 15 * prev }), b = sinAlt({ lat: c.lat, al: c.al + 15 * SPIN_H });
+      if ((a <= 0) !== (b <= 0)) tour.events.push({ i, kind: b > 0 ? "Sunrise!" : "Sunset!", h: SPIN_H });
+    });
+  }
+  if (tour && SPIN_H > prev && SPIN_H - prev < 1.5) {
+    const a = sinAlt({ lat: NYC.lat, al: nycAl(prev) }), b = sinAlt({ lat: NYC.lat, al: nycAl(SPIN_H) });
+    if ((a <= 0) !== (b <= 0)) tour.events.push({ nyc: true, kind: b > 0 ? "Sunrise in NYC!" : "Sunset in NYC!", h: SPIN_H });
+  }
+  if (SPIN_H < prev) tour.events = [];
+  $("tourTime").value = SPIN_H;
+  render();
+  if (SPIN_H >= 23.95 && tour && !tour.ok) tourDone(tour.steps[tour.i].okMsg ? tour.steps[tour.i].okMsg(tourCtx()) : null);
+}
+function stopSpin() { cancelAnimationFrame(spinFrame); spinFrame = 0; $("tourPlay").textContent = "▶ Play"; }
+function playSpin() {
+  if (spinFrame) { stopSpin(); return; }
+  if (SPIN_H >= 23.95) setSpin(0);
+  $("tourPlay").textContent = "❚❚ Pause"; spinLast = performance.now();
+  const step = now => {
+    const dt = Math.max(0, Math.min(0.1, (now - spinLast) / 1000)); spinLast = now;
+    setSpin(SPIN_H + dt * 24 / 16);
+    if (SPIN_H >= 24) { stopSpin(); return; }
+    spinFrame = requestAnimationFrame(step);
+  };
+  spinFrame = requestAnimationFrame(step);
+}
+function spinLand(on) {   // the spin step shows the continents (so NYC makes sense), then puts the button back how it was
+  if (on && !LAND_ON) { LAND_ON = true; tour.landAuto = true; landLabel(); }
+  else if (!on && tour && tour.landAuto) { LAND_ON = false; tour.landAuto = false; landLabel(); }
+}
+function resetSpin() { stopSpin(); SPIN_H = 0; $("tourTime").value = 0; if (tour) tour.events = []; }
+$("tourPlay").onclick = playSpin;
+$("tourTime").oninput = () => { stopSpin(); setSpin(parseFloat($("tourTime").value)); };
+// New York City rides along on the continents map, marked with a star, so students can see where they are (Adam, 2026-11-25).
+const NYC = { lat: 40.7, lon: -74 };
+const nycAl = h => NYC.lon + (st.prob.view.pic.landShift || 0) + 15 * h;   // where NYC is, h hours after the picture
+function spinPaint(svg, S) {   // the time readout, NYC's star, and the sunrise/sunset labels, drawn over the picture
+  const v = st.prob.view, sc = v.cur, pic = spunPic(v.pic);
+  const tx = text(svg, sc.cx, 28, "", { "text-anchor": "middle", "font-size": 20, "font-weight": 700 });
+  Object.assign(tx.style, { paintOrder: "stroke", stroke: "#fff", strokeWidth: 5, strokeLinejoin: "round" });
+  const t1 = document.createElementNS(SVGNS, "tspan"); t1.setAttribute("fill", "#7B3FA0"); t1.textContent = S.anim.clock(tourCtx(), SPIN_H) + "  ·  "; tx.appendChild(t1);
+  const t2 = document.createElementNS(SVGNS, "tspan"); t2.setAttribute("fill", "#1F3B57"); t2.textContent = `NYC: ${clockAt(12 + nycAl(SPIN_H) / 15)}`; tx.appendChild(t2);
+  const ny = sc.P(pos(NYC.lat, nycAl(SPIN_H)));
+  if (ny.z > 0.02) {
+    const star = [...Array(10)].map((_, k) => { const r = k % 2 ? 5.5 : 13, a = -Math.PI / 2 + k * Math.PI / 5; return (ny.x + r * Math.cos(a)).toFixed(1) + "," + (ny.y + r * Math.sin(a)).toFixed(1); }).join(" ");
+    el("polygon", { points: star, fill: "#1F3B57", stroke: "#fff", "stroke-width": 2.5, "stroke-linejoin": "round" }, svg);
+    text(svg, ny.x + 16, ny.y + 6, "NYC", Object.assign({ "font-size": 16, "font-weight": 700, fill: "#1F3B57" }, HALO));
+  }
+  tour.events = tour.events.filter(e => SPIN_H - e.h < 2.2);
+  for (const e of tour.events) {
+    if (e.nyc) { if (ny.z > 0.02) text(svg, ny.x, ny.y - 22, e.kind, Object.assign({ "text-anchor": "middle", "font-size": 20, "font-weight": 700, fill: e.kind.startsWith("Sunrise") ? "#C46A12" : "#7B3FA0" }, HALO)); continue; }
+    const g = cityG(sc, pic.cities[e.i]); if (g.z <= 0.02) continue;
+    text(svg, g.x, g.y - 46, e.kind, Object.assign({ "text-anchor": "middle", "font-size": 20, "font-weight": 700, fill: e.kind === "Sunrise!" ? "#C46A12" : "#7B3FA0" }, HALO));
+  }
+}
+const NYC_LINE = " The ★ is <b>New York City</b>. Watch when NYC gets its sunrise and sunset too.";
+const ANIM_STEP = (title, text, clock) => ({ title, text: x => text(x) + NYC_LINE, anim: { clock },
+  ask: x => "Press Play and watch one whole day. (You can also drag the slider.)",
+  okMsg: x => "That's one whole day: Earth turned all the way around once." });
+const hoursLabel = (x, h) => h < 0.05 ? "Now" : `${Math.round(h)} hour${Math.round(h) === 1 ? "" : "s"} later`;
+const cityClock = (x, h) => `${hoursLabel(x, h)} · city ${x.L}: ${clockAt(12 + x.c.al / 15 + h)}`;
+const ANIM = {
+  1: ANIM_STEP("Watch a day go by",
+    x => `The Sun stays put. <b>Earth turns.</b> Watch city ${x.L} ride into the daylight (sunrise), across the middle of the day side (noon), into the night (sunset), and around again. Its compass turns with it, so the Sun's direction changes: east at sunrise, south at noon, west at sunset.`, cityClock),
+  2: ANIM_STEP("Watch a day go by",
+    x => "The Sun stays put. <b>Earth turns</b>, carrying every city along its own latitude line. Watch which cities cross into the daylight first. The first one to cross was the closest to the sunrise edge, measured along the way it travels.", hoursLabel),
+  4: ANIM_STEP("Watch a day go by",
+    x => "The Sun stays put. <b>Earth turns.</b> All the cities ride around the same latitude line, so each one takes its turn at sunrise, noon and sunset. Watch the beams: each city's light is most direct when it reaches noon.", hoursLabel),
+  5: ANIM_STEP("Watch a day go by",
+    x => "The Sun stays put. <b>Earth turns</b>, and the whole longitude line moves together: all four cities reach sunrise, noon and sunset at the same moment. Watch the grids. The patches grow and shrink together, but the city closest to the equator always has the smallest patch: the most direct light.", cityClock)
+};
+for (const tab in ANIM) {   // just before "Your turn", except Who's next: before "Who gets there first", so they can use what they saw
+  const T = TOURS[tab], at = tab === "2" ? T.findIndex(S => S.title === "Who gets there first") : T.length - 1;
+  T.splice(at, 0, ANIM[tab]);
+}
+function tourSeen(tab) { try { return localStorage.getItem("u3pp-tour-" + tab) === "1"; } catch (e) { return false; } }
+function startTour() {
+  if (!TOURS[st.tab]) return;
+  try { localStorage.setItem("u3pp-tour-" + st.tab, "1"); } catch (e) { }
+  if (st.prob.angles) st.prob.flashFocus = null;   // the tour's taps need both flashlights
+  tour = { steps: TOURS[st.tab], i: 0, events: [] };
+  document.body.classList.add("touring"); $("tour").hidden = false;
+  tourStep();
+}
+function endTour(fresh) {   // fresh: finished the tour, so start the questions on a new picture
+  if (!tour) return;
+  stopSpeech(); resetSpin(); spinLand(false);
+  tour = null; document.body.classList.remove("touring"); $("tour").hidden = true;
+  if (fresh) newPicture(); else { showFocus(st.done); render(); }
+}
+function tourStep() {
+  stopSpeech();
+  const S = tour.steps[tour.i];
+  tour.ok = !S.tap && !S.check && !S.anim && !S.nycOpen; $("skylab").hidden = true; tour.moved = false; tour.t = null;
+  tour.cam0 = st.prob.view ? st.prob.view.cur.cam : null;
+  resetSpin(); $("tourCtl").hidden = !S.anim; spinLand(!!S.anim);
+  if (S.setup) S.setup();
+  const x = tourCtx();
+  $("tourCount").textContent = `How to read this picture · step ${tour.i + 1} of ${tour.steps.length}`;
+  $("tourTitle").textContent = S.title;
+  $("tourText").innerHTML = S.text(x);
+  $("tourAsk").innerHTML = S.ask ? S.ask(x) : "";
+  $("tourMsg").className = ""; $("tourMsg").innerHTML = "";
+  $("tourBack").disabled = tour.i === 0;
+  $("tourNext").textContent = S.last ? "Start the questions →" : "Next →";
+  $("tourNext").disabled = !tour.ok;
+  render();
+}
+function tourDone(msg) {
+  tour.ok = true; $("tourNext").disabled = false;
+  $("tourMsg").className = "ok"; $("tourMsg").innerHTML = "✓ " + (msg || "Yes!");
+  $("tourNext").focus();
+}
+function tourPaint(svg) {   // runs after every redraw: dim all but the spotlight; check drag steps
+  const S = tour.steps[tour.i], x = tourCtx();
+  if (S.check && !tour.ok && tour.moved && S.check(x)) tourDone(S.okMsg && S.okMsg(x));
+  if (S.anim) spinPaint(svg, S);
+  const sp = S.spot && S.spot(x);
+  if (!sp) return;
+  const id = "tourHole", m = el("mask", { id }, el("defs", {}, svg));
+  el("rect", { x: 0, y: 0, width: W, height: H, fill: "#fff" }, m);
+  const shape = (parent, a) => sp.w ? el("rect", Object.assign({ x: sp.x, y: sp.y, width: sp.w, height: sp.h, rx: 14 }, a), parent)
+    : el("circle", Object.assign({ cx: sp.x, cy: sp.y, r: sp.r }, a), parent);   // a circle, or a rectangle when w/h are given
+  shape(m, { fill: "#000" });
+  el("rect", { x: 0, y: 0, width: W, height: H, fill: "#fff", "fill-opacity": 0.6, mask: `url(#${id})`, "pointer-events": "none" }, svg);
+  shape(svg, { fill: "none", stroke: "#1F8A9E", "stroke-width": 4, "stroke-dasharray": "10 6", "pointer-events": "none" });
+}
+// Taps on the picture (a press that doesn't move); presses that move are drags and turn the globe.
+{ let down = null;
+  $("svg").addEventListener("pointerdown", ev => { down = [ev.clientX, ev.clientY]; });
+  $("svg").addEventListener("pointermove", ev => { if (tour && down && Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) > 8) tour.moved = true; });
+  $("svg").addEventListener("pointerup", ev => {
+    if (!tour || !down) return;
+    const moved = Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) > 8; down = null;
+    const S = tour.steps[tour.i]; if (moved || !S.tap || tour.ok) return;
+    const pt = $("svg").createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const q = pt.matrixTransform($("svg").getScreenCTM().inverse()), r = S.tap(tourCtx(), [q.x, q.y]);
+    if (r === true) tourDone(S.okMsg && S.okMsg(tourCtx())); else { $("tourMsg").className = "no"; $("tourMsg").innerHTML = r; }
+  });
+}
+$("tourBtn").onclick = startTour;
+$("tourSkip").onclick = () => endTour(false);
+$("tourBack").onclick = () => { if (tour.i > 0) { tour.i--; tourStep(); } };
+$("tourNext").onclick = () => { if (!tour.ok) return; if (tour.steps[tour.i].last) endTour(true); else { tour.i++; tourStep(); } };
+// ---------- read aloud ----------
+// Speaker buttons use the browser's own text-to-speech (built into Chrome and Chromebooks; nothing to load).
+// They read the intro, the question with its choices, the hint or explanation, and each tutorial step (Adam, 2026-11-24).
+// The pictures are not read. Tap again to stop.
+const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>' +
+  '<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function spoken(t) {   // say symbols and short forms the way a person would read them out
+  return t.replace(/[✓→←]/g, " ").replace(/° sign/g, "degree sign").replace(/°/g, " degrees")
+    .replace(/(\d|AM|PM)\s*[–-]\s*(\d)/g, "$1 to $2")
+    .replace(/\bNYC\b/g, "New York City").replace(/\b(NE|NW|SE|SW)\b/g, m => DIR_WORD[m])
+    .replace(/\b(answer is) ([NESW])\./g, (m, a, d) => `${a} ${DIR_WORD[d]}.`)
+    .replace(/\s+/g, " ").trim();
+}
+// join pieces into sentences without doubling the punctuation ("Sun?." or "direction..")
+const sentences = parts => parts.filter(Boolean).map(p => p.trim()).reduce((a, p) => !a ? p : a + (/[.?!:]$/.test(a) ? " " : ". ") + p, "");
+let sayingBtn = null;
+function stopSpeech() { if (window.speechSynthesis) speechSynthesis.cancel(); if (sayingBtn) sayingBtn.classList.remove("on"); sayingBtn = null; }
+function speak(btn, text) {
+  if (sayingBtn === btn) { stopSpeech(); return; }
+  stopSpeech();
+  if (!text) return;
+  const u = new SpeechSynthesisUtterance(spoken(text));
+  u.lang = "en-US"; u.rate = 0.9;
+  const vs = speechSynthesis.getVoices().filter(v => /^en(-|_)US/i.test(v.lang));
+  const v = vs.find(v => /Google/.test(v.name)) || vs[0]; if (v) u.voice = v;
+  u.onend = u.onerror = () => { if (sayingBtn === btn) { btn.classList.remove("on"); sayingBtn = null; } };
+  sayingBtn = btn; btn.classList.add("on");
+  speechSynthesis.speak(u);
+}
+const textOf = id => $(id).innerText.trim();
+function questionWords() {   // the question, then the answer choices that are showing
+  const q = st.prob.questions[st.qi], box = $("choices").children;
+  const ch = q.choices.filter((c, i) => box[i] && box[i].style.display !== "none")
+    .map(c => (q.grid && DIR_WORD[c[0]] ? DIR_WORD[c[0]] : c[0]) + (c[1] ? ", " + c[1] : ""));
+  return sentences([textOf("qtext"), ch.length ? (ch.length > 1 ? "The choices are: " : "The answer: ") + ch.join(". ") + "." : ""]);
+}
+const SAY = { sayIntro: () => textOf("intro"), sayQ: questionWords, sayFb: () => textOf("feedback"),
+  sayTour: () => sentences([textOf("tourTitle"), textOf("tourText"), textOf("tourAsk"), textOf("tourMsg")]) };
+if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) document.body.classList.add("nospeech");
+else {
+  speechSynthesis.getVoices();   // starts loading the voice list
+  for (const id in SAY) { const b = $(id); b.innerHTML = SPEAKER; b.title = "Read aloud"; b.setAttribute("aria-label", "Read aloud"); b.onclick = () => speak(b, SAY[id]()); }
+  // the hint/explanation speaker only shows when there is something to read
+  new MutationObserver(() => { $("sayFb").hidden = !$("feedback").textContent.trim(); }).observe($("feedback"), { childList: true, characterData: true, subtree: true });
+}
+function score() { $("score").textContent = st.total ? `Right on the first try: ${st.right} of ${st.total}` : ""; }
+
+const t0 = parseInt(params.get("tab"), 10);
+if (t0 >= 1 && t0 <= TABS.length) st.tab = t0 - 1;
+newPicture(parseInt(params.get("seed"), 10) || undefined);
+})();
+</script>
+</body>
+</html>
